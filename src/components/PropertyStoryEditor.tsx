@@ -251,8 +251,17 @@ async function buildCanvas(d: DesignData, photosrc: string | null): Promise<HTML
   ctx.font = `600 23px ${SS}`; ctx.fillStyle = WHITE; ctx.textAlign = 'center'
   ctx.fillText(d.badge.toUpperCase(), 52 + 155, 92)
 
-  ctx.font = `300 23px ${SS}`; ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.textAlign = 'right'
-  ctx.fillText(d.ref, W - 52, 92)
+  // REF with dark background pill
+  ctx.font = `300 23px ${SS}`
+  const refW = ctx.measureText(d.ref).width
+  const refPad = 20
+  const refBgX = W - 52 - refPad - refW
+  const refBgW = refW + refPad * 2
+  ctx.fillStyle = 'rgba(0,0,0,0.50)'
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 1.5
+  rr(ctx, refBgX, 52, refBgW, 62, 31); ctx.fill(); ctx.stroke()
+  ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.textAlign = 'center'
+  ctx.fillText(d.ref, refBgX + refBgW / 2, 92)
 
   // Location
   ctx.beginPath(); ctx.arc(62, HERO - 130, 8, 0, Math.PI * 2)
@@ -263,11 +272,22 @@ async function buildCanvas(d: DesignData, photosrc: string | null): Promise<HTML
   // Title
   const words = d.title.split(' ')
   ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 28
-  ctx.font = `300 85px ${SF}`; ctx.fillStyle = WHITE; ctx.textAlign = 'left'
+  // Scale font down if title is too wide for canvas
+  const maxTitleW = W - 104
+  let titleSize = 85
+  ctx.font = `300 ${titleSize}px ${SF}`
+  const w0measure = ctx.measureText((words[0] || '') + (words.length > 1 ? ' ' : '')).width
+  ctx.font = `bold ${titleSize}px ${SF}`
+  const w1measure = words.length > 1 ? ctx.measureText(words.slice(1).join(' ')).width : 0
+  const measuredTitleW = w0measure + w1measure
+  if (measuredTitleW > maxTitleW) {
+    titleSize = Math.floor(titleSize * maxTitleW / measuredTitleW)
+  }
+  ctx.font = `300 ${titleSize}px ${SF}`; ctx.fillStyle = WHITE; ctx.textAlign = 'left'
   ctx.fillText(words[0] || '', 52, HERO - 40)
   if (words.length > 1) {
     const w0 = ctx.measureText((words[0] || '') + ' ').width
-    ctx.font = `bold 85px ${SF}`; ctx.fillStyle = '#D4EDEF'
+    ctx.font = `bold ${titleSize}px ${SF}`; ctx.fillStyle = '#D4EDEF'
     ctx.fillText(words.slice(1).join(' '), 52 + w0, HERO - 40)
   }
   ctx.shadowBlur = 0
@@ -399,8 +419,8 @@ export default function PropertyStoryEditor() {
             <div style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.40)', borderRadius: 20, padding: '2px 9px', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
               <Editable value={d.badge} onChange={set('badge')} center style={{ fontSize: 6, fontWeight: 700, color: WHITE, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SS }} />
             </div>
-            <div style={{ pointerEvents: 'auto' }}>
-              <Editable value={d.ref} onChange={set('ref')} style={{ fontSize: 6, color: 'rgba(255,255,255,0.55)', letterSpacing: 2, fontFamily: SS }} />
+            <div style={{ background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 20, padding: '2px 9px', pointerEvents: 'auto' }}>
+              <Editable value={d.ref} onChange={set('ref')} style={{ fontSize: 6, color: 'rgba(255,255,255,0.85)', letterSpacing: 2, fontFamily: SS }} />
             </div>
           </div>
 
