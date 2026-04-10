@@ -162,111 +162,161 @@ export default function ListStoryEditor() {
         ctx.closePath();
       }
 
-      // Background: blurred p2 or gradient
+      // Background: light base + blurred p2
+      ctx.fillStyle = "#ddeaeb";
+      ctx.fillRect(0, 0, W, H);
       if (img2) {
-        // Draw blurred background using p2
-        const bgScale = Math.max(W / img2.width, H / img2.height) * 1.1;
+        const bgScale = Math.max(W / img2.width, H / img2.height) * 1.15;
         const bgW = img2.width * bgScale, bgH = img2.height * bgScale;
-        ctx.filter = "blur(12px)";
-        ctx.globalAlpha = 0.6;
+        ctx.filter = "blur(4px)";
+        ctx.globalAlpha = 0.8;
         ctx.drawImage(img2, (W - bgW) / 2, (H - bgH) / 2, bgW, bgH);
         ctx.filter = "none";
         ctx.globalAlpha = 1;
-      } else {
-        // Gradient fallback
-        const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-        bgGrad.addColorStop(0, "#d4eaeb");
-        bgGrad.addColorStop(1, "#ffffff");
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, W, H);
       }
 
       // Decorative leaves
-      ctx.font = "120px serif";
+      ctx.font = "140px serif";
       ctx.globalAlpha = 0.15;
-      ctx.fillText("🌿", W - 160, 160);
-      ctx.save(); ctx.translate(140, H - 100); ctx.rotate(Math.PI); ctx.fillText("🌿", 0, 0); ctx.restore();
+      ctx.fillText("🌿", W - 180, 180);
+      ctx.save(); ctx.translate(160, H - 80); ctx.rotate(Math.PI); ctx.fillText("🌿", 0, 0); ctx.restore();
       ctx.globalAlpha = 1;
 
       // Header: NEW LISTING! ✨
-      ctx.font = `82px ${SF}`;
+      ctx.font = `italic 90px ${SF}`;
       ctx.fillStyle = "#ffffff";
       ctx.textAlign = "center";
-      const titleW = ctx.measureText(d.title).width;
-      ctx.fillText(d.title, W / 2 - 20, 160);
-      ctx.font = "52px serif";
+      ctx.shadowColor = "rgba(0,0,0,0.3)"; ctx.shadowBlur = 12;
+      ctx.fillText(d.title, W / 2 - 30, 200);
+      ctx.shadowBlur = 0;
+      ctx.font = "60px serif";
       ctx.fillStyle = "#f59e0b";
-      ctx.fillText("✨", W / 2 + titleW / 2, 150);
+      const titleW = ctx.measureText(d.title).width;
+      ctx.fillText("✨", W / 2 + titleW / 2 + 10, 190);
 
-      // Hero image (aspect 1.6:1, no border, rounded-lg)
-      const heroX = 60, heroY = 220, heroW = W - 120, heroH = Math.round(heroW / 1.6);
+      // Hero image (aspect 1.6:1, no border, rounded)
+      const heroX = 70, heroY = 270, heroW = W - 140, heroH = Math.round(heroW / 1.6);
       if (img1) {
         ctx.save();
-        roundRect(heroX, heroY, heroW, heroH, 18);
+        roundRect(heroX, heroY, heroW, heroH, 24);
         ctx.clip();
         const s = Math.max(heroW / img1.width, heroH / img1.height);
         ctx.drawImage(img1, heroX + (heroW - img1.width * s) / 2, heroY + (heroH - img1.height * s) / 2, img1.width * s, img1.height * s);
         ctx.restore();
       } else {
-        ctx.fillStyle = "#c0d4d4";
-        roundRect(heroX, heroY, heroW, heroH, 18); ctx.fill();
+        ctx.fillStyle = "#b0cccc";
+        roundRect(heroX, heroY, heroW, heroH, 24); ctx.fill();
       }
 
-      // Info card (semi-transparent, thin border, rounded-lg)
-      const cardX = 100, cardW = W - 200, cardY = heroY + heroH + 50, cardH = H - cardY - 80;
-      ctx.fillStyle = "rgba(255,255,255,0.65)";
+      // Info card (matches bg-gray-200/75, border-black/20)
+      const cardX = 130, cardW = W - 260;
+      const cardY = heroY + heroH + 80;
+      const cardH = 740;
+      ctx.fillStyle = "rgba(210,215,215,0.75)";
       roundRect(cardX, cardY, cardW, cardH, 18); ctx.fill();
-      ctx.strokeStyle = "rgba(180,200,200,0.5)"; ctx.lineWidth = 2;
+      ctx.strokeStyle = "rgba(0,0,0,0.20)"; ctx.lineWidth = 2;
       roundRect(cardX, cardY, cardW, cardH, 18); ctx.stroke();
 
       // Ref
-      ctx.font = `400 32px ${SS}`;
+      ctx.font = `400 30px ${SS}`;
       ctx.fillStyle = "rgba(0,0,0,0.55)";
       ctx.textAlign = "center";
-      ctx.fillText(d.ref, W / 2, cardY + 60);
+      ctx.fillText(d.ref, cardX + cardW / 2, cardY + 55);
 
       // Price
-      ctx.font = `900 82px ${SS}`;
+      ctx.font = `900 76px ${SS}`;
       ctx.fillStyle = "#0f172a";
-      ctx.fillText("Price: " + d.price, W / 2, cardY + 160);
+      ctx.fillText("Price: " + d.price, cardX + cardW / 2, cardY + 145);
 
-      // Divider (gray, thin)
-      ctx.fillStyle = "rgba(160,160,160,0.5)";
-      ctx.fillRect(cardX + 40, cardY + 190, cardW - 80, 1.5);
+      // Divider
+      ctx.fillStyle = "rgba(120,120,120,0.45)";
+      ctx.fillRect(cardX + 30, cardY + 170, cardW - 60, 1.5);
 
-      // Stats rows (black icons, dark text)
-      const stats = [
-        { label: d.location, icon: "📍" },
-        { label: d.beds, icon: "🛏" },
-        { label: d.baths, icon: "🚿" },
-        { label: d.area, icon: "📐" },
-        { label: d.type, icon: "🏠" },
+      // Stats rows with drawn icons
+      function drawIcon(cx: number, cy: number, type: string) {
+        ctx.save();
+        ctx.strokeStyle = "#000";
+        ctx.fillStyle = "none";
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        const s = 22; // icon half-size
+        if (type === "pin") {
+          // MapPin
+          ctx.beginPath();
+          ctx.arc(cx, cy - 4, s * 0.55, Math.PI, 0);
+          ctx.lineTo(cx, cy + s * 0.8);
+          ctx.closePath(); ctx.stroke();
+          ctx.beginPath(); ctx.arc(cx, cy - 4, 4, 0, Math.PI * 2); ctx.stroke();
+        } else if (type === "bed") {
+          // Bed
+          ctx.beginPath();
+          ctx.moveTo(cx - s, cy - 2); ctx.lineTo(cx - s, cy + s * 0.6);
+          ctx.moveTo(cx + s, cy - 2); ctx.lineTo(cx + s, cy + s * 0.6);
+          ctx.moveTo(cx - s, cy + 2); ctx.lineTo(cx + s, cy + 2);
+          ctx.moveTo(cx - s, cy - 6); ctx.bezierCurveTo(cx - s * 0.3, cy - s, cx + s * 0.3, cy - s, cx + s, cy - 6);
+          ctx.stroke();
+        } else if (type === "bath") {
+          // Bath/shower
+          ctx.beginPath();
+          ctx.moveTo(cx - s, cy); ctx.lineTo(cx + s, cy);
+          ctx.moveTo(cx - s, cy); ctx.lineTo(cx - s, cy - s * 0.8);
+          ctx.arc(cx - s * 0.5, cy - s * 0.8, s * 0.5, Math.PI, 0);
+          ctx.moveTo(cx - s * 0.7, cy); ctx.lineTo(cx - s * 0.9, cy + s * 0.7);
+          ctx.moveTo(cx + s * 0.7, cy); ctx.lineTo(cx + s * 0.9, cy + s * 0.7);
+          ctx.stroke();
+        } else if (type === "square") {
+          // Square/area
+          ctx.beginPath();
+          ctx.rect(cx - s * 0.7, cy - s * 0.7, s * 1.4, s * 1.4);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(cx - s * 0.7, cy); ctx.lineTo(cx + s * 0.7, cy);
+          ctx.moveTo(cx, cy - s * 0.7); ctx.lineTo(cx, cy + s * 0.7);
+          ctx.stroke();
+        } else if (type === "home") {
+          // Home
+          ctx.beginPath();
+          ctx.moveTo(cx, cy - s * 0.8);
+          ctx.lineTo(cx + s * 0.8, cy - 1);
+          ctx.lineTo(cx + s * 0.8, cy + s * 0.7);
+          ctx.lineTo(cx - s * 0.8, cy + s * 0.7);
+          ctx.lineTo(cx - s * 0.8, cy - 1);
+          ctx.closePath(); ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      const statsData = [
+        { label: d.location, iconType: "pin" },
+        { label: d.beds, iconType: "bed" },
+        { label: d.baths, iconType: "bath" },
+        { label: d.area, iconType: "square" },
+        { label: d.type, iconType: "home" },
       ];
       ctx.textAlign = "left";
-      let sy = cardY + 260;
-      stats.forEach(({ label, icon }) => {
-        ctx.font = "40px serif";
-        ctx.fillStyle = "#000";
-        ctx.fillText(icon, cardX + 40, sy);
-        ctx.font = `600 38px ${SS}`;
+      let sy = cardY + 240;
+      statsData.forEach(({ label, iconType }) => {
+        drawIcon(cardX + 50, sy - 6, iconType);
+        ctx.font = `600 40px ${SS}`;
         ctx.fillStyle = "#334155";
-        ctx.fillText(label, cardX + 100, sy);
-        sy += 72;
+        ctx.fillText(label, cardX + 90, sy);
+        sy += 75;
       });
 
-      // Polaroid (photo 2) – straight edges, thin border, rotated
+      // Polaroid (photo 2) – straight edges, rotated 8deg
       if (img2) {
         ctx.save();
-        const polX = W - 200, polY = cardY + 260;
+        const polX = cardX + cardW - 240, polY = cardY + 200;
         ctx.translate(polX, polY);
-        ctx.rotate(6 * Math.PI / 180);
-        // White polaroid frame
+        ctx.rotate(8 * Math.PI / 180);
+        // White frame
         ctx.fillStyle = "#fff";
-        ctx.shadowColor = "rgba(0,0,0,0.3)"; ctx.shadowBlur = 30; ctx.shadowOffsetY = 10;
-        const frameW = 320, frameH = 400, pad = 8, bottomPad = 60;
+        ctx.shadowColor = "rgba(0,0,0,0.3)"; ctx.shadowBlur = 25; ctx.shadowOffsetY = 8;
+        const frameW = 300, frameH = 380, pad = 8, bottomPad = 70;
         ctx.fillRect(0, 0, frameW, frameH);
         ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-        // Photo inside (fills most of frame)
+        // Photo inside
         const pw = frameW - pad * 2, ph = frameH - pad - bottomPad;
         ctx.beginPath(); ctx.rect(pad, pad, pw, ph); ctx.clip();
         const ps = Math.max(pw / img2.width, ph / img2.height);
