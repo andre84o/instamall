@@ -285,7 +285,22 @@ async function buildCanvas(
       img.src = src;
     });
 
-  const [i1, i2] = await Promise.all([loadImg(p1src), loadImg(p2src)]);
+  const [i1, i2, bedImg, bathImg, areaImg] = await Promise.all([
+    loadImg(p1src), loadImg(p2src),
+    loadImg('/bed-icon.svg'), loadImg('/shower-icon.svg'), loadImg('/size-icon.svg'),
+  ]);
+
+  function tintImg(img: HTMLImageElement | null, color: string, sz: number): HTMLCanvasElement | null {
+    if (!img) return null;
+    const off = document.createElement('canvas');
+    off.width = sz; off.height = sz;
+    const oc = off.getContext('2d')!;
+    oc.drawImage(img, 0, 0, sz, sz);
+    oc.globalCompositeOperation = 'source-in';
+    oc.fillStyle = color;
+    oc.fillRect(0, 0, sz, sz);
+    return off;
+  }
 
   ctx.fillStyle = BG;
   ctx.fillRect(0, 0, W, H);
@@ -386,7 +401,7 @@ async function buildCanvas(
   // Stats card
   const SY = IY + 214,
     SW = W - 104,
-    SH = 162;
+    SH = 220;
   ctx.fillStyle = WHITE;
   ctx.shadowColor = "rgba(61,138,143,0.10)";
   ctx.shadowBlur = 24;
@@ -394,6 +409,12 @@ async function buildCanvas(
   ctx.fill();
   ctx.shadowBlur = 0;
   const CW = SW / 3;
+  const iSz = 54;
+  const statIcons = [
+    tintImg(bedImg, TEAL, iSz),
+    tintImg(bathImg, TEAL, iSz),
+    tintImg(areaImg, TEAL, iSz),
+  ];
   (
     [
       [d.beds, "BEDS"],
@@ -402,13 +423,15 @@ async function buildCanvas(
     ] as [string, string][]
   ).forEach(([v, l], i) => {
     const cx = 52 + i * CW + CW / 2;
+    const icon = statIcons[i];
+    if (icon) ctx.drawImage(icon, cx - iSz / 2, SY + 18, iSz, iSz);
     ctx.font = `bold 68px ${SF}`;
     ctx.fillStyle = TEAL;
     ctx.textAlign = "center";
-    ctx.fillText(v, cx, SY + 100);
+    ctx.fillText(v, cx, SY + 140);
     ctx.font = `300 22px ${SS}`;
     ctx.fillStyle = MUTED;
-    ctx.fillText(l, cx, SY + 134);
+    ctx.fillText(l, cx, SY + 185);
     if (i < 2) {
       ctx.fillStyle = "rgba(61,138,143,0.14)";
       ctx.fillRect(52 + (i + 1) * CW - 1, SY + 28, 2, SH - 56);

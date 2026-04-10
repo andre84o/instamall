@@ -145,6 +145,18 @@ export default function PropertyStoryEditor() {
       ctx.fillText(fields.price, 66, y + 80)
       y += 120
 
+      function tintIcon(img: HTMLImageElement | null, color: string, size: number): HTMLCanvasElement | null {
+        if (!img) return null
+        const off = document.createElement('canvas')
+        off.width = size; off.height = size
+        const oc = off.getContext('2d')!
+        oc.drawImage(img, 0, 0, size, size)
+        oc.globalCompositeOperation = 'source-in'
+        oc.fillStyle = color
+        oc.fillRect(0, 0, size, size)
+        return off
+      }
+
       // ICON BAR
       const bx = 66, bw = W - 132, bh = 170
       ctx.fillStyle = '#FFFFFF'
@@ -161,19 +173,18 @@ export default function PropertyStoryEditor() {
         ctx.stroke()
       }
 
+      const GOLD = '#C9A96E'
+      const iSize = 56
       const icons = [
-        { val: fields.beds,  img: bedImg },
-        { val: fields.baths, img: showerImg },
-        { val: fields.area,  img: sizeImg },
-        { val: fields.type,  img: houseImg },
+        { val: fields.beds,  img: tintIcon(bedImg, GOLD, iSize) },
+        { val: fields.baths, img: tintIcon(showerImg, GOLD, iSize) },
+        { val: fields.area,  img: tintIcon(sizeImg, GOLD, iSize) },
+        { val: fields.type,  img: tintIcon(houseImg, GOLD, iSize) },
       ]
       ctx.textAlign = 'center'
       icons.forEach(({ val, img }, i) => {
         const cx = bx + cw * i + cw / 2
-        if (img) {
-          const iSize = 56
-          ctx.drawImage(img, cx - iSize / 2, y + 16, iSize, iSize)
-        }
+        if (img) ctx.drawImage(img, cx - iSize / 2, y + 16, iSize, iSize)
         const isLong = val.length > 5
         ctx.font = isLong ? '500 30px Georgia, serif' : 'bold 50px Georgia, serif'
         ctx.fillStyle = '#2C2C2C'

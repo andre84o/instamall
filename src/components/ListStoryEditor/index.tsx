@@ -248,21 +248,12 @@ export default function ListStoryEditor() {
 
       // Stats rows with SVG icons
       const svgIconMap: Record<string, HTMLImageElement | null> = {
-        pin: positionImg, bed: bedImg, bath: showerImg, square: sizeImg,
+        pin: positionImg, bed: bedImg, bath: showerImg, square: sizeImg, home: houseImg,
       };
       function drawIcon(cx: number, cy: number, type: string) {
         const img = svgIconMap[type];
-        if (img) {
-          const sz = 44;
-          ctx.drawImage(img, cx - sz / 2, cy - sz / 2, sz, sz);
-          return;
-        }
-        // home
-        if (type === "home" && houseImg) {
-          const s = 22;
-          const iw = s * 2.4, ih = iw * (433 / 600);
-          ctx.drawImage(houseImg, cx - iw / 2, cy - ih / 2, iw, ih);
-        }
+        const sz = 50;
+        if (img) ctx.drawImage(img, cx - sz / 2, cy - sz / 2, sz, sz);
       }
 
       const statsData = [
@@ -275,11 +266,11 @@ export default function ListStoryEditor() {
       ctx.textAlign = "left";
       let sy = cardY + 240;
       statsData.forEach(({ label, iconType }) => {
-        drawIcon(cardX + 50, sy - 6, iconType);
+        drawIcon(cardX + 50, sy - 14, iconType);
         ctx.font = `600 40px ${SS}`;
         ctx.fillStyle = "#334155";
-        ctx.fillText(label, cardX + 90, sy);
-        sy += 75;
+        ctx.fillText(label, cardX + 96, sy);
+        sy += 90;
       });
 
       // Polaroid (photo 2) – straight edges, rotated 8deg
