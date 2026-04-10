@@ -1,725 +1,481 @@
-"use client";
+'use client'
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from 'react'
 
-export default function PropertyStoryEditor() {
-  const [fields, setFields] = useState({
-    ref: "58272",
-    location: "PUNTA PRIMA · SPAIN",
-    title1: "Modern",
-    title2: "Bungalow",
-    price: "229.500 €",
-    beds: "2",
-    baths: "2",
-    area: "67 m²",
-    type: "Bungalow",
-    footer1: "Contact us",
-    footer2: "Exclusive Living",
-  });
+const TEAL  = '#3D8A8F'
+const TEALD = '#2C6E73'
+const WHITE = '#FFFFFF'
+const BG    = '#F6FAFA'
+const DARK  = '#1A2626'
+const MUTED = '#7A9696'
+const PH_C  = '#5A9EA3'
+const SF    = "Georgia,'Times New Roman',serif"
+const SS    = "'Helvetica Neue',Helvetica,Arial,sans-serif"
 
-  const [photo1, setPhoto1] = useState<string | null>(null);
-  const [photo2, setPhoto2] = useState<string | null>(null);
-  const [editing, setEditing] = useState<string | null>(null);
-  const [tempVal, setTempVal] = useState("");
-  const [downloading, setDownloading] = useState(false);
-  const photo1Ref = useRef<HTMLInputElement>(null);
-  const photo2Ref = useRef<HTMLInputElement>(null);
+// ── Icons ────────────────────────────────────────────────────────────────────
 
-  const startEdit = (key: string) => {
-    setEditing(key);
-    setTempVal(fields[key as keyof typeof fields]);
-  };
-  const commitEdit = () => {
-    if (editing) setFields((f) => ({ ...f, [editing]: tempVal }));
-    setEditing(null);
-  };
+function BedIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 40 40" fill="none" stroke={TEAL} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="20" width="32" height="14" rx="2"></rect>
+      <path d="M4 20V12C4 9.8 5.8 8 8 8H32C34.2 8 36 9.8 36 12V20"></path>
+      <rect x="14" y="12" width="8" height="8" rx="1"></rect>
+    </svg>
+  )
+}
 
-  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>, setter: (v: string) => void) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => setter(ev.target?.result as string);
-    reader.readAsDataURL(file);
-  };
+function BathIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 40 40" fill="none" stroke={TEAL} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="16" width="32" height="14" rx="2"></rect>
+      <path d="M4 16V9C4 6.8 5.8 5 8 5C10.2 5 12 6.8 12 9V12"></path>
+      <line x1="10" y1="30" x2="8" y2="37"></line>
+      <line x1="30" y1="30" x2="32" y2="37"></line>
+    </svg>
+  )
+}
 
-  function roundRect(
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    r: number
-  ) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
+function AreaIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 40 40" fill="none" stroke={TEAL} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="4" width="32" height="32" rx="3"></rect>
+      <path d="M4 15H36M15 4V36"></path>
+      <path d="M22 21L30 13M30 13H24M30 13V19"></path>
+    </svg>
+  )
+}
+
+function CamIcon() {
+  return (
+    <svg width="32" height="29" viewBox="0 0 40 36" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="8" width="36" height="26" rx="3"></rect>
+      <circle cx="20" cy="21" r="7"></circle>
+      <path d="M14 8l2.5-5h7L26 8"></path>
+      <circle cx="33" cy="13" r="1.8" fill="rgba(255,255,255,0.85)" stroke="none"></circle>
+    </svg>
+  )
+}
+
+// ── Editable field ────────────────────────────────────────────────────────────
+
+interface EditableProps {
+  value: string
+  onChange: (v: string) => void
+  style?: React.CSSProperties
+  center?: boolean
+}
+
+function Editable({ value, onChange, style, center }: EditableProps) {
+  const [on, setOn] = useState(false)
+  const [v, setV]   = useState(value)
+
+  const commit = () => { onChange(v); setOn(false) }
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const text = e.clipboardData.getData('text/plain')
+    setV(prev => prev + text)
   }
 
-  const downloadStory = useCallback(async () => {
-    setDownloading(true);
-    try {
-      const W = 1080,
-        H = 1920;
-      const canvas = document.createElement("canvas");
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext("2d")!;
-
-      const loadImg = (src: string | null) =>
-        new Promise<HTMLImageElement | null>((res) => {
-          if (!src) {
-            res(null);
-            return;
-          }
-          const img = new Image();
-          img.onload = () => res(img);
-          img.onerror = () => res(null);
-          img.src = src;
-        });
-
-      const [img1, img2] = await Promise.all([loadImg(photo1), loadImg(photo2)]);
-
-      // Background
-      ctx.fillStyle = "#F9F5F0";
-      ctx.fillRect(0, 0, W, H);
-
-      // TOP PHOTO 0–750
-      const topH = 750;
-      if (img1) {
-        const scale = Math.max(W / img1.width, topH / img1.height);
-        const sw = img1.width * scale,
-          sh = img1.height * scale;
-        const ox = (W - sw) / 2,
-          oy = (topH - sh) / 2;
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0, 0, W, topH);
-        ctx.clip();
-        ctx.drawImage(img1, ox, oy, sw, sh);
-        ctx.restore();
-      } else {
-        ctx.fillStyle = "#cccccc";
-        ctx.fillRect(0, 0, W, topH);
-      }
-      // fade to cream
-      const grad1 = ctx.createLinearGradient(0, topH - 200, 0, topH);
-      grad1.addColorStop(0, "rgba(249,245,240,0)");
-      grad1.addColorStop(1, "rgba(249,245,240,1)");
-      ctx.fillStyle = grad1;
-      ctx.fillRect(0, topH - 200, W, 200);
-
-      // REF badge
-      ctx.fillStyle = "rgba(249,245,240,0.95)";
-      roundRect(ctx, 44, 44, 240, 64, 4);
-      ctx.fill();
-      ctx.font = "500 26px 'Helvetica Neue', Helvetica, sans-serif";
-      ctx.fillStyle = "#9A9A9A";
-      ctx.fillText(`REF  ${fields.ref}`, 70, 85);
-
-      // CONTENT
-      let y = 800;
-
-      // Gold dot + location
-      ctx.beginPath();
-      ctx.arc(70, y + 12, 9, 0, Math.PI * 2);
-      ctx.fillStyle = "#C9A96E";
-      ctx.fill();
-      ctx.font = "500 28px 'Helvetica Neue', Helvetica, sans-serif";
-      ctx.fillStyle = "#C9A96E";
-      ctx.fillText(fields.location.toUpperCase(), 96, y + 18);
-      y += 70;
-
-      // Title1
-      ctx.font = "300 130px Georgia, serif";
-      ctx.fillStyle = "#2C2C2C";
-      ctx.fillText(fields.title1, 66, y + 110);
-      y += 130;
-
-      // Title2 italic
-      ctx.font = "300 italic 120px Georgia, serif";
-      ctx.fillStyle = "#8B7355";
-      ctx.fillText(fields.title2, 66, y + 100);
-      y += 120;
-
-      // Divider
-      ctx.fillStyle = "#C9A96E";
-      ctx.fillRect(66, y + 20, 110, 3);
-      y += 70;
-
-      // Price label
-      ctx.font = "400 26px 'Helvetica Neue', Helvetica, sans-serif";
-      ctx.fillStyle = "#9A9A9A";
-      ctx.fillText("PRICE", 66, y);
-      y += 46;
-
-      // Price
-      ctx.font = "600 96px Georgia, serif";
-      ctx.fillStyle = "#2C2C2C";
-      ctx.fillText(fields.price, 66, y + 80);
-      y += 120;
-
-      // ICON BAR
-      const bx = 66,
-        bw = W - 132,
-        bh = 170;
-      ctx.fillStyle = "#FFFFFF";
-      roundRect(ctx, bx, y, bw, bh, 8);
-      ctx.fill();
-      ctx.strokeStyle = "#E8E0D5";
-      ctx.lineWidth = 2;
-      roundRect(ctx, bx, y, bw, bh, 8);
-      ctx.stroke();
-
-      const cw = bw / 4;
-      for (let i = 1; i < 4; i++) {
-        ctx.beginPath();
-        ctx.moveTo(bx + cw * i, y + 24);
-        ctx.lineTo(bx + cw * i, y + bh - 24);
-        ctx.strokeStyle = "#E8E0D5";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-
-      const icons = [
-        { val: fields.beds, emoji: "🛏" },
-        { val: fields.baths, emoji: "🛁" },
-        { val: fields.area, emoji: "📐" },
-        { val: fields.type, emoji: "🏠" },
-      ];
-      ctx.textAlign = "center";
-      icons.forEach(({ val, emoji }, i) => {
-        const cx = bx + cw * i + cw / 2;
-        ctx.font = "58px serif";
-        ctx.fillText(emoji, cx, y + 74);
-        const isLong = val.length > 5;
-        ctx.font = isLong ? "500 30px Georgia, serif" : "bold 50px Georgia, serif";
-        ctx.fillStyle = "#2C2C2C";
-        ctx.fillText(val, cx, y + 148);
-      });
-      ctx.textAlign = "left";
-      y += bh + 36;
-
-      // BOTTOM PHOTO
-      const ph2 = 1565 - y;
-      if (img2 && ph2 > 0) {
-        const scale = Math.max((W - 132) / img2.width, ph2 / img2.height);
-        const sw = img2.width * scale,
-          sh = img2.height * scale;
-        const ox = 66 + ((W - 132) - sw) / 2;
-        const oy = y + (ph2 - sh) / 2;
-        ctx.save();
-        roundRect(ctx, 66, y, W - 132, ph2, 8);
-        ctx.clip();
-        ctx.drawImage(img2, ox, oy, sw, sh);
-        ctx.restore();
-      } else if (ph2 > 0) {
-        ctx.fillStyle = "#cccccc";
-        roundRect(ctx, 66, y, W - 132, ph2, 8);
-        ctx.fill();
-      }
-
-      // FOOTER
-      const fy = 1630;
-      ctx.font = "500 28px 'Helvetica Neue', Helvetica, sans-serif";
-      ctx.fillStyle = "#2C2C2C";
-      ctx.fillText(fields.footer1, 66, fy);
-      const f1w = ctx.measureText(fields.footer1).width;
-
-      ctx.font = "italic 34px Georgia, serif";
-      ctx.fillStyle = "#8B7355";
-      ctx.textAlign = "right";
-      ctx.fillText(fields.footer2, W - 66, fy);
-      const f2w = ctx.measureText(fields.footer2).width;
-      ctx.textAlign = "left";
-
-      ctx.fillStyle = "#C9A96E";
-      ctx.fillRect(66 + f1w + 28, fy - 9, W - 132 - f1w - f2w - 56, 2);
-
-      // Download
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `property_story_ref${fields.ref}.png`;
-        a.click();
-        URL.revokeObjectURL(url);
-        setDownloading(false);
-      }, "image/png");
-    } catch (err) {
-      console.error(err);
-      alert("Fel vid generering: " + (err as Error).message);
-      setDownloading(false);
-    }
-  }, [fields, photo1, photo2]);
-
-  const EditableText = ({
-    field,
-    style,
-  }: {
-    field: string;
-    style: React.CSSProperties;
-  }) =>
-    editing === field ? (
+  if (on) {
+    return (
       <input
         autoFocus
-        value={tempVal}
-        onChange={(e) => setTempVal(e.target.value)}
-        onBlur={commitEdit}
-        onKeyDown={(e) => e.key === "Enter" && commitEdit()}
+        value={v}
+        onChange={e => setV(e.target.value)}
+        onBlur={commit}
+        onKeyDown={e => {
+          if (e.key === 'Enter') commit()
+          if (e.key === 'Escape') { setV(value); setOn(false) }
+        }}
+        onPaste={handlePaste}
         style={{
           ...style,
-          background: "rgba(201,169,110,0.13)",
-          border: "1.5px solid #C9A96E",
-          borderRadius: 2,
-          outline: "none",
-          padding: "1px 5px",
-          width: "100%",
-          boxSizing: "border-box",
+          textAlign: center ? 'center' : 'left',
+          background: 'rgba(255,255,255,0.18)',
+          border: '1.5px solid rgba(61,138,143,0.5)',
+          borderRadius: 3,
+          outline: 'none',
+          padding: '1px 4px',
+          margin: '-1px -4px',
+          minWidth: 20,
+          width: `${Math.max((v || '').length + 1, 3)}ch`,
+          fontFamily: 'inherit',
+          fontSize: 'inherit',
+          color: 'inherit',
+          fontWeight: 'inherit',
+          letterSpacing: 'inherit',
+          fontStyle: 'inherit',
+          lineHeight: 'inherit',
+          boxSizing: 'content-box',
         }}
       />
-    ) : (
-      <span
-        onClick={() => startEdit(field)}
-        title="Klicka för att redigera"
-        style={{
-          ...style,
-          cursor: "text",
-          borderBottom: "1px dashed rgba(201,169,110,0.5)",
-          display: "inline-block",
-          minWidth: 16,
-        }}
-      >
-        {fields[field as keyof typeof fields]}
-      </span>
-    );
+    )
+  }
 
-  const iconDefs = [
-    {
-      field: "beds",
-      svg: (
-        <svg
-          width="19"
-          height="19"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#C9A96E"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M3 9V19M21 9V19M3 13H21M3 9C3 9 5 7 9 7H15C19 7 21 9 21 9"></path>
-          <rect x="7" y="9" width="4" height="4" rx="0.5"></rect>
-          <rect x="13" y="9" width="4" height="4" rx="0.5"></rect>
-        </svg>
-      ),
-    },
-    {
-      field: "baths",
-      svg: (
-        <svg
-          width="19"
-          height="19"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#C9A96E"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M4 12H20V15C20 17.2 18.2 19 16 19H8C5.8 19 4 17.2 4 15V12Z"></path>
-          <path d="M4 12V8C4 6.9 4.9 6 6 6C7.1 6 8 6.9 8 8V9"></path>
-          <line x1="4" y1="12" x2="20" y2="12"></line>
-        </svg>
-      ),
-    },
-    {
-      field: "area",
-      svg: (
-        <svg
-          width="19"
-          height="19"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#C9A96E"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="3" y="3" width="18" height="18" rx="1"></rect>
-          <path d="M3 9H21M9 3V21"></path>
-        </svg>
-      ),
-    },
-    {
-      field: "type",
-      svg: (
-        <svg
-          width="19"
-          height="19"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#C9A96E"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M3 10.5L12 3L21 10.5V20C21 20.6 20.6 21 20 21H15V16H9V21H4C3.4 21 3 20.6 3 20V10.5Z"></path>
-        </svg>
-      ),
-    },
-  ];
+  return (
+    <span
+      onClick={() => { setV(value); setOn(true) }}
+      title="Klicka för att redigera"
+      style={{
+        ...style,
+        cursor: 'pointer',
+        textAlign: center ? 'center' : 'left',
+        display: center ? 'block' : 'inline',
+        borderRadius: 2,
+      }}
+      onMouseEnter={e => (e.currentTarget.style.outline = '2px dashed rgba(61,138,143,0.4)')}
+      onMouseLeave={e => (e.currentTarget.style.outline = 'none')}
+    >
+      {value}
+    </span>
+  )
+}
+
+// ── Photo zone ────────────────────────────────────────────────────────────────
+
+interface PhotoProps {
+  src: string | null
+  onLoad: (src: string) => void
+  style?: React.CSSProperties
+  label: string
+  sub?: string
+}
+
+function Photo({ src, onLoad, style, label, sub }: PhotoProps) {
+  const ref = useRef<HTMLInputElement>(null)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]
+    if (!f) return
+    const r = new FileReader()
+    r.onload = ev => { if (ev.target?.result) onLoad(ev.target.result as string) }
+    r.readAsDataURL(f)
+    e.target.value = ''
+  }
 
   return (
     <div
+      onClick={() => ref.current?.click()}
       style={{
-        minHeight: "100vh",
-        background: "#111",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: "20px 12px",
-        fontFamily: "sans-serif",
+        ...style,
+        position: 'relative',
+        overflow: 'hidden',
+        cursor: 'pointer',
+        background: src ? `url(${src}) center/cover no-repeat` : PH_C,
       }}
     >
-      <div style={{ marginBottom: 14, textAlign: "center" }}>
-        <div
-          style={{
-            color: "#C9A96E",
-            fontSize: 12,
-            letterSpacing: 4,
-            textTransform: "uppercase",
-            marginBottom: 4,
-          }}
-        >
-          Property Story Editor
-        </div>
-        <div style={{ color: "#555", fontSize: 10, letterSpacing: 2 }}>
-          ✏️ Klicka på text · 📷 Klicka på bilder för att byta
-        </div>
-      </div>
-
-      {/* PREVIEW CARD */}
-      <div
-        style={{
-          width: 340,
-          background: "#F9F5F0",
-          borderRadius: 10,
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-          boxShadow: "0 25px 70px rgba(0,0,0,0.6)",
-          flexShrink: 0,
-        }}
-      >
-        {/* Top photo */}
-        <div
-          onClick={() => photo1Ref.current?.click()}
-          style={{
-            height: 198,
-            background: photo1 ? `url(${photo1}) center/cover` : "#1e1e1e",
-            position: "relative",
-            cursor: "pointer",
-            flexShrink: 0,
-          }}
-        >
-          {!photo1 && (
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexDirection: "column",
-                gap: 6,
-                color: "#444",
-              }}
-            >
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#444"
-                strokeWidth="1.5"
-              >
-                <rect x="3" y="6" width="18" height="14" rx="2" />
-                <circle cx="12" cy="13" r="3.5" />
-                <path d="M9 6l1.5-3h3L15 6" />
-              </svg>
-              <span style={{ fontSize: 9, letterSpacing: 3 }}>KLICKA FÖR FOTO 1</span>
+      {!src && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <CamIcon />
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontFamily: SS, fontSize: 8, fontWeight: 700, color: WHITE, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 2 }}>
+              {label}
             </div>
-          )}
-          <input
-            ref={photo1Ref}
-            type="file"
-            accept="image/*"
-            style={{ display: "none" }}
-            onChange={(e) => handlePhoto(e, setPhoto1)}
-          />
-          <div
-            style={{
-              position: "absolute",
-              top: 10,
-              left: 10,
-              background: "rgba(249,245,240,0.93)",
-              padding: "4px 10px",
-              borderRadius: 2,
-              display: "flex",
-              gap: 4,
-              alignItems: "center",
-            }}
-          >
-            <span style={{ fontSize: 8, color: "#9A9A9A", letterSpacing: 2 }}>REF</span>
-            <EditableText
-              field="ref"
-              style={{ fontSize: 9, color: "#5A5A5A", letterSpacing: 2 }}
-            />
-          </div>
-          <div
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 46,
-              background: "linear-gradient(transparent,#F9F5F0)",
-            }}
-          />
-        </div>
-
-        {/* Content */}
-        <div
-          style={{
-            padding: "6px 18px 0",
-            display: "flex",
-            flexDirection: "column",
-            gap: 3,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <div
-              style={{
-                width: 5,
-                height: 5,
-                background: "#C9A96E",
-                borderRadius: "50%",
-                flexShrink: 0,
-              }}
-            />
-            <EditableText
-              field="location"
-              style={{
-                fontSize: 8,
-                color: "#C9A96E",
-                letterSpacing: 3,
-                textTransform: "uppercase",
-                fontWeight: 500,
-              }}
-            />
-          </div>
-          <div style={{ lineHeight: 1.05 }}>
-            <div>
-              <EditableText
-                field="title1"
-                style={{
-                  fontSize: 31,
-                  color: "#2C2C2C",
-                  fontFamily: "Georgia,serif",
-                  fontWeight: 300,
-                }}
-              />
-            </div>
-            <div>
-              <EditableText
-                field="title2"
-                style={{
-                  fontSize: 31,
-                  color: "#8B7355",
-                  fontFamily: "Georgia,serif",
-                  fontStyle: "italic",
-                  fontWeight: 300,
-                }}
-              />
-            </div>
-          </div>
-          <div style={{ width: 38, height: 1, background: "#C9A96E" }} />
-          <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
-            <span
-              style={{
-                fontSize: 8,
-                color: "#9A9A9A",
-                letterSpacing: 3,
-                textTransform: "uppercase",
-              }}
-            >
-              Price
-            </span>
-            <EditableText
-              field="price"
-              style={{
-                fontSize: 22,
-                color: "#2C2C2C",
-                fontFamily: "Georgia,serif",
-                fontWeight: 600,
-              }}
-            />
-          </div>
-
-          {/* Icons */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4,1fr)",
-              background: "#fff",
-              border: "1px solid #E8E0D5",
-              borderRadius: 3,
-              overflow: "hidden",
-              margin: "2px 0",
-            }}
-          >
-            {iconDefs.map(({ field, svg }, i) => (
-              <div
-                key={field}
-                style={{
-                  padding: "7px 3px",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 3,
-                  borderRight: i < 3 ? "1px solid #E8E0D5" : "none",
-                }}
-              >
-                {svg}
-                <EditableText
-                  field={field}
-                  style={{
-                    fontSize: field === "type" ? 7 : 12,
-                    fontWeight: "bold",
-                    color: "#2C2C2C",
-                    fontFamily: "Georgia,serif",
-                    textAlign: "center",
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom photo */}
-          <div
-            onClick={() => photo2Ref.current?.click()}
-            style={{
-              height: 82,
-              background: photo2 ? `url(${photo2}) center/cover` : "#1e1e1e",
-              borderRadius: 3,
-              cursor: "pointer",
-              position: "relative",
-              marginBottom: 2,
-            }}
-          >
-            {!photo2 && (
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-                  gap: 4,
-                  color: "#444",
-                }}
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#444"
-                  strokeWidth="1.5"
-                >
-                  <rect x="3" y="6" width="18" height="14" rx="2" />
-                  <circle cx="12" cy="13" r="3.5" />
-                  <path d="M9 6l1.5-3h3L15 6" />
-                </svg>
-                <span style={{ fontSize: 8, letterSpacing: 2 }}>KLICKA FÖR FOTO 2</span>
-              </div>
-            )}
-            <input
-              ref={photo2Ref}
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={(e) => handlePhoto(e, setPhoto2)}
-            />
-          </div>
-
-          {/* Footer */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "5px 0 8px",
-            }}
-          >
-            <EditableText
-              field="footer1"
-              style={{
-                fontSize: 7,
-                letterSpacing: 3,
-                textTransform: "uppercase",
-                color: "#2C2C2C",
-              }}
-            />
-            <div style={{ flex: 1, height: 1, background: "#C9A96E", margin: "0 7px" }} />
-            <EditableText
-              field="footer2"
-              style={{
-                fontSize: 9,
-                fontStyle: "italic",
-                color: "#8B7355",
-                fontFamily: "Georgia,serif",
-              }}
-            />
+            {sub && <div style={{ fontFamily: SS, fontSize: 6, color: 'rgba(255,255,255,0.65)', letterSpacing: 1 }}>{sub}</div>}
           </div>
         </div>
-      </div>
-
-      {/* DOWNLOAD */}
-      <button
-        onClick={downloadStory}
-        disabled={downloading}
-        style={{
-          marginTop: 22,
-          background: downloading ? "#333" : "linear-gradient(135deg,#C9A96E,#A8854A)",
-          color: "#fff",
-          border: "none",
-          borderRadius: 8,
-          padding: "15px 44px",
-          fontSize: 13,
-          fontWeight: 700,
-          letterSpacing: 3,
-          textTransform: "uppercase",
-          cursor: downloading ? "not-allowed" : "pointer",
-          boxShadow: downloading ? "none" : "0 8px 28px rgba(201,169,110,0.45)",
-          transition: "all 0.2s",
-        }}
-      >
-        {downloading ? "⏳  Genererar..." : "⬇  Ladda ner  1080 × 1920 px"}
-      </button>
-      <div style={{ marginTop: 10, color: "#444", fontSize: 10, letterSpacing: 1 }}>
-        PNG · Klar för Instagram Stories
-      </div>
+      )}
+      <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleChange} />
     </div>
-  );
+  )
+}
+
+// ── Canvas helpers ────────────────────────────────────────────────────────────
+
+function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r)
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
+  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r)
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y)
+  ctx.closePath()
+}
+
+interface DesignData {
+  badge: string
+  ref: string
+  location: string
+  title: string
+  price: string
+  beds: string
+  baths: string
+  area: string
+  type: string
+  tagline: string
+}
+
+async function buildCanvas(d: DesignData, photosrc: string | null): Promise<HTMLCanvasElement> {
+  const W = 1080, H = 1080
+  const cv = document.createElement('canvas')
+  cv.width = W; cv.height = H
+  const ctx = cv.getContext('2d')!
+
+  const loadImg = (src: string | null): Promise<HTMLImageElement | null> =>
+    new Promise(res => {
+      if (!src) return res(null)
+      const img = new Image()
+      img.onload = () => res(img)
+      img.onerror = () => res(null)
+      img.src = src
+    })
+
+  const photo = await loadImg(photosrc)
+
+  ctx.fillStyle = BG
+  ctx.fillRect(0, 0, W, H)
+
+  // Hero (upper two-thirds)
+  const HERO = 620
+  if (photo) {
+    ctx.save()
+    ctx.beginPath(); ctx.rect(0, 0, W, HERO); ctx.clip()
+    const s = Math.max(W / photo.width, HERO / photo.height)
+    ctx.drawImage(photo, (W - photo.width * s) / 2, (HERO - photo.height * s) / 2, photo.width * s, photo.height * s)
+    const g = ctx.createLinearGradient(0, 0, 0, HERO)
+    g.addColorStop(0, 'rgba(26,38,38,0.50)')
+    g.addColorStop(0.35, 'rgba(26,38,38,0.02)')
+    g.addColorStop(0.65, 'rgba(26,38,38,0.00)')
+    g.addColorStop(1, 'rgba(26,38,38,0.80)')
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, HERO)
+    ctx.restore()
+  } else {
+    ctx.fillStyle = PH_C; ctx.fillRect(0, 0, W, HERO)
+  }
+
+  // Badge
+  ctx.fillStyle = 'rgba(255,255,255,0.14)'
+  ctx.strokeStyle = 'rgba(255,255,255,0.40)'; ctx.lineWidth = 1.5
+  rr(ctx, 52, 52, 310, 62, 31); ctx.fill(); ctx.stroke()
+  ctx.font = `600 23px ${SS}`; ctx.fillStyle = WHITE; ctx.textAlign = 'center'
+  ctx.fillText(d.badge.toUpperCase(), 52 + 155, 92)
+
+  ctx.font = `300 23px ${SS}`; ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.textAlign = 'right'
+  ctx.fillText(d.ref, W - 52, 92)
+
+  // Location
+  ctx.beginPath(); ctx.arc(62, HERO - 130, 8, 0, Math.PI * 2)
+  ctx.fillStyle = TEAL; ctx.fill()
+  ctx.font = `300 29px ${SS}`; ctx.fillStyle = 'rgba(255,255,255,0.80)'; ctx.textAlign = 'left'
+  ctx.fillText(d.location, 82, HERO - 120)
+
+  // Title
+  const words = d.title.split(' ')
+  ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 28
+  ctx.font = `300 85px ${SF}`; ctx.fillStyle = WHITE; ctx.textAlign = 'left'
+  ctx.fillText(words[0] || '', 52, HERO - 40)
+  if (words.length > 1) {
+    const w0 = ctx.measureText((words[0] || '') + ' ').width
+    ctx.font = `bold 85px ${SF}`; ctx.fillStyle = '#D4EDEF'
+    ctx.fillText(words.slice(1).join(' '), 52 + w0, HERO - 40)
+  }
+  ctx.shadowBlur = 0
+
+  // Teal strip
+  ctx.fillStyle = TEAL; ctx.fillRect(0, HERO, W, 5)
+  const IY = HERO + 5
+
+  // Info row
+  const IH = H - IY
+  ctx.fillStyle = BG; ctx.fillRect(0, IY, W, IH)
+
+  // Price
+  ctx.font = `300 22px ${SS}`; ctx.fillStyle = MUTED; ctx.textAlign = 'left'
+  ctx.fillText('ASKING PRICE', 60, IY + 52)
+  ctx.font = `bold 88px ${SF}`; ctx.fillStyle = DARK; ctx.textAlign = 'left'
+  ctx.fillText(d.price, 54, IY + 148)
+
+  // Stats card
+  const SY = IY + 170, SW = W - 104, SH = 150
+  ctx.fillStyle = WHITE
+  ctx.shadowColor = 'rgba(61,138,143,0.10)'; ctx.shadowBlur = 24
+  rr(ctx, 52, SY, SW, SH, 16); ctx.fill(); ctx.shadowBlur = 0
+  const CW = SW / 3
+  ;([
+    [d.beds, 'BEDS'],
+    [d.baths, 'BATHS'],
+    [d.area, 'AREA'],
+  ] as [string, string][]).forEach(([v, l], i) => {
+    const cx = 52 + i * CW + CW / 2
+    ctx.font = `bold 58px ${SF}`; ctx.fillStyle = TEAL; ctx.textAlign = 'center'
+    ctx.fillText(v, cx, SY + 90)
+    ctx.font = `300 22px ${SS}`; ctx.fillStyle = MUTED
+    ctx.fillText(l, cx, SY + 124)
+    if (i < 2) {
+      ctx.fillStyle = 'rgba(61,138,143,0.14)'
+      ctx.fillRect(52 + (i + 1) * CW - 1, SY + 28, 2, SH - 56)
+    }
+  })
+
+  // Type pill + tagline row
+  const PY = SY + SH + 28
+  ctx.font = `bold 24px ${SS}`
+  const TW = ctx.measureText(d.type.toUpperCase()).width + 56
+  ctx.fillStyle = TEAL; rr(ctx, 52, PY, TW, 56, 28); ctx.fill()
+  ctx.fillStyle = WHITE; ctx.textAlign = 'center'
+  ctx.fillText(d.type.toUpperCase(), 52 + TW / 2, PY + 36)
+
+  ctx.font = `300 22px ${SS}`; ctx.fillStyle = MUTED; ctx.textAlign = 'center'
+  ctx.fillText(d.tagline, W / 2, H - 24)
+
+  return cv
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export default function PropertyStoryEditor() {
+  const [d, setD] = useState<DesignData>({
+    badge:    'For Sale',
+    ref:      'REF 58272',
+    location: 'Punta Prima, Spain',
+    title:    'Modern Bungalow',
+    price:    '229.500 €',
+    beds:     '2',
+    baths:    '2',
+    area:     '67 m²',
+    type:     'Bungalow',
+    tagline:  'One agent · Several options',
+  })
+  const [photo, setPhoto] = useState<string | null>(null)
+  const [st, setSt] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+
+  const set = (k: keyof DesignData) => (v: string) =>
+    setD(x => ({ ...x, [k]: v }))
+
+  const dl = useCallback(async () => {
+    setSt('loading')
+    try {
+      const cv = await buildCanvas(d, photo)
+      cv.toBlob(blob => {
+        if (!blob) return
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url; a.download = 'property.png'
+        document.body.appendChild(a); a.click()
+        document.body.removeChild(a); URL.revokeObjectURL(url)
+        setSt('done'); setTimeout(() => setSt('idle'), 3000)
+      }, 'image/png')
+    } catch {
+      setSt('error'); setTimeout(() => setSt('idle'), 3000)
+    }
+  }, [d, photo])
+
+  // Preview: square 300×300
+  const PW = 300
+  const PH = 300
+  const HPX = Math.round(PH * 620 / 1080)
+
+  const heroGradient = photo
+    ? 'linear-gradient(to bottom,rgba(26,38,38,0.48) 0%,rgba(26,38,38,0.02) 35%,rgba(26,38,38,0.00) 62%,rgba(26,38,38,0.78) 100%)'
+    : 'rgba(0,0,0,0.25)'
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#091212', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 16px 64px', fontFamily: SS }}>
+
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <div style={{ color: TEAL, fontSize: 10, letterSpacing: 6, textTransform: 'uppercase', marginBottom: 5 }}>
+          CollectedHomes · Property Editor
+        </div>
+        <div style={{ color: '#2A4040', fontSize: 9, letterSpacing: 1, lineHeight: 1.8 }}>
+          ✏️ Klicka på text för att redigera<br />
+          📷 Klicka på bildrutan för att ladda upp foto
+        </div>
+      </div>
+
+      {/* Property card – square preview */}
+      <div style={{ width: PW, height: PH, borderRadius: 12, overflow: 'hidden', background: BG, display: 'flex', flexDirection: 'column', flexShrink: 0, boxShadow: '0 0 0 1px rgba(61,138,143,0.35), 0 40px 80px rgba(0,0,0,0.85)' }}>
+
+        {/* Hero */}
+        <div style={{ height: HPX, position: 'relative', flexShrink: 0 }}>
+          <Photo src={photo} onLoad={setPhoto} label="Klicka för foto" sub="Fastighetens exteriör" style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
+          <div style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', background: heroGradient }} />
+
+          {/* Badge + REF */}
+          <div style={{ position: 'absolute', top: 8, left: 8, right: 8, zIndex: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'none' }}>
+            <div style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.40)', borderRadius: 20, padding: '2px 9px', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
+              <Editable value={d.badge} onChange={set('badge')} center style={{ fontSize: 6, fontWeight: 700, color: WHITE, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SS }} />
+            </div>
+            <div style={{ pointerEvents: 'auto' }}>
+              <Editable value={d.ref} onChange={set('ref')} style={{ fontSize: 6, color: 'rgba(255,255,255,0.55)', letterSpacing: 2, fontFamily: SS }} />
+            </div>
+          </div>
+
+          {/* Location + Title */}
+          <div style={{ position: 'absolute', bottom: 7, left: 9, right: 9, zIndex: 4, pointerEvents: 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 1, pointerEvents: 'auto' }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: TEAL, flexShrink: 0 }} />
+              <Editable value={d.location} onChange={set('location')} style={{ fontSize: 7, color: 'rgba(255,255,255,0.78)', letterSpacing: 1, fontFamily: SS, fontWeight: 300 }} />
+            </div>
+            <div style={{ pointerEvents: 'auto' }}>
+              <Editable value={d.title} onChange={set('title')} style={{ fontFamily: SF, fontSize: 16, fontWeight: 300, color: WHITE, lineHeight: 1.05 }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Teal strip */}
+        <div style={{ height: 2, background: TEAL, flexShrink: 0 }} />
+
+        {/* Info */}
+        <div style={{ flex: 1, background: BG, padding: '5px 9px 3px', display: 'flex', flexDirection: 'column', gap: 4, overflow: 'hidden' }}>
+
+          <div>
+            <div style={{ fontSize: 5, color: MUTED, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 1, fontFamily: SS }}>Asking Price</div>
+            <Editable value={d.price} onChange={set('price')} style={{ fontFamily: SF, fontSize: 18, fontWeight: 'bold', color: DARK }} />
+          </div>
+
+          {/* Stats */}
+          <div style={{ background: WHITE, borderRadius: 7, padding: '3px 0', display: 'grid', gridTemplateColumns: '1fr 1.5px 1fr 1.5px 1fr', boxShadow: '0 2px 14px rgba(61,138,143,0.07)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, padding: '2px 0' }}>
+              <BedIcon />
+              <Editable value={d.beds} onChange={set('beds')} center style={{ fontFamily: SF, fontSize: 11, fontWeight: 'bold', color: DARK, textAlign: 'center' }} />
+              <div style={{ fontSize: 4, color: MUTED, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SS }}>Beds</div>
+            </div>
+            <div style={{ background: 'rgba(61,138,143,0.13)' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, padding: '2px 0' }}>
+              <BathIcon />
+              <Editable value={d.baths} onChange={set('baths')} center style={{ fontFamily: SF, fontSize: 11, fontWeight: 'bold', color: DARK, textAlign: 'center' }} />
+              <div style={{ fontSize: 4, color: MUTED, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SS }}>Baths</div>
+            </div>
+            <div style={{ background: 'rgba(61,138,143,0.13)' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, padding: '2px 0' }}>
+              <AreaIcon />
+              <Editable value={d.area} onChange={set('area')} center style={{ fontFamily: SF, fontSize: 11, fontWeight: 'bold', color: DARK, textAlign: 'center' }} />
+              <div style={{ fontSize: 4, color: MUTED, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SS }}>Area</div>
+            </div>
+          </div>
+
+          {/* Type pill + tagline */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ background: TEAL, borderRadius: 20, padding: '2px 10px' }}>
+              <Editable value={d.type} onChange={set('type')} center style={{ fontSize: 6, color: WHITE, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SS, textAlign: 'center' }} />
+            </div>
+            <Editable value={d.tagline} onChange={set('tagline')} style={{ fontSize: 5, color: MUTED, letterSpacing: 1, fontFamily: SS }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Download button */}
+      <button
+        onClick={dl}
+        disabled={st === 'loading'}
+        style={{
+          marginTop: 24,
+          background: st === 'loading' ? '#1A3030' : `linear-gradient(135deg,${TEAL},${TEALD})`,
+          color: WHITE, border: 'none', borderRadius: 8, padding: '15px 48px',
+          fontSize: 11, fontWeight: 700, letterSpacing: 4, textTransform: 'uppercase',
+          cursor: st === 'loading' ? 'not-allowed' : 'pointer',
+          boxShadow: st === 'loading' ? 'none' : '0 8px 32px rgba(61,138,143,0.42)',
+          fontFamily: SS, transition: 'all 0.2s',
+        }}
+      >
+        {st === 'loading' ? 'Genererar…' : '⬇  Ladda ner  1080 × 1080 px'}
+      </button>
+
+      {st === 'done'  && <div style={{ marginTop: 10, color: TEAL,   fontSize: 11, letterSpacing: 2, fontFamily: SS }}>✓ Sparad!</div>}
+      {st === 'error' && <div style={{ marginTop: 10, color: '#e55', fontSize: 11, letterSpacing: 2, fontFamily: SS }}>✗ Något gick fel</div>}
+      <div style={{ marginTop: 8, color: '#162020', fontSize: 9, letterSpacing: 2, fontFamily: SS }}>PNG · 1080 × 1080 px</div>
+    </div>
+  )
 }
