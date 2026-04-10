@@ -364,14 +364,11 @@ export default function StoryEditor() {
   const [p1, setP1] = useState<string | null>(null)
   const [p2, setP2] = useState<string | null>(null)
   const [st, setSt] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
-  const [password, setPassword] = useState('')
-  const [authError, setAuthError] = useState('')
 
   const set = (k: keyof DesignData) => (v: string) =>
     setD(x => ({ ...x, [k]: v }))
 
   const dl = useCallback(async () => {
-    setAuthError('')
     setSt('loading')
     try {
       const cv = await buildCanvas(d, p1, p2)
@@ -379,12 +376,10 @@ export default function StoryEditor() {
       const res = await fetch('/api/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, imageData, filename: 'story.png' }),
+        body: JSON.stringify({ imageData, filename: 'story.png' }),
       })
       if (!res.ok) {
-        const err = await res.json()
-        setAuthError(err.error ?? 'Fel vid nedladdning')
-        setSt('idle')
+        setSt('error'); setTimeout(() => setSt('idle'), 3000)
         return
       }
       const blob = await res.blob()
@@ -397,7 +392,7 @@ export default function StoryEditor() {
     } catch {
       setSt('error'); setTimeout(() => setSt('idle'), 3000)
     }
-  }, [d, p1, p2, password])
+  }, [d, p1, p2])
 
   const PW  = 300
   const PH  = Math.round(300 * 1920 / 1080)
@@ -495,28 +490,15 @@ export default function StoryEditor() {
 
       {/* Password + Download */}
       <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-        <input
-          type="password"
-          placeholder="Lösenord för nedladdning"
-          value={password}
-          onChange={e => { setPassword(e.target.value); setAuthError('') }}
-          style={{
-            padding: '10px 18px', fontSize: 12, borderRadius: 6,
-            border: authError ? '1.5px solid #e55' : `1.5px solid ${TEALD}`,
-            background: '#0D1F1F', color: WHITE, outline: 'none',
-            width: 240, fontFamily: SS, letterSpacing: 1,
-          }}
-        />
-        {authError && <div style={{ color: '#e55', fontSize: 10, letterSpacing: 1, fontFamily: SS }}>{authError}</div>}
         <button
           onClick={dl}
-          disabled={st === 'loading' || !password}
+          disabled={st === 'loading'}
           style={{
-            background: st === 'loading' || !password ? '#1A3030' : `linear-gradient(135deg,${TEAL},${TEALD})`,
+            background: st === 'loading' ? '#1A3030' : `linear-gradient(135deg,${TEAL},${TEALD})`,
             color: WHITE, border: 'none', borderRadius: 8, padding: '15px 48px',
             fontSize: 11, fontWeight: 700, letterSpacing: 4, textTransform: 'uppercase',
-            cursor: st === 'loading' || !password ? 'not-allowed' : 'pointer',
-            boxShadow: st === 'loading' || !password ? 'none' : '0 8px 32px rgba(61,138,143,0.42)',
+            cursor: st === 'loading' ? 'not-allowed' : 'pointer',
+            boxShadow: st === 'loading' ? 'none' : '0 8px 32px rgba(61,138,143,0.42)',
             fontFamily: SS, transition: 'all 0.2s',
           }}
         >
