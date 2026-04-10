@@ -158,11 +158,11 @@ function Photo({ src, onLoad, style, label, sub }: PhotoProps) {
     <div
       onClick={() => ref.current?.click()}
       style={{
-        ...style,
         position: 'relative',
         overflow: 'hidden',
         cursor: 'pointer',
         background: src ? `url(${src}) center/cover no-repeat` : PH_C,
+        ...style,
       }}
     >
       {!src && (
