@@ -1,23 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
-  const password = process.env.DOWNLOAD_PASSWORD
-  if (!password) {
-    return NextResponse.json({ error: 'Nedladdning är inte konfigurerad' }, { status: 503 })
-  }
-
-  let body: { password?: string; imageData?: string; filename?: string }
+  let body: { imageData?: string; filename?: string }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: 'Ogiltig förfrågan' }, { status: 400 })
   }
 
-  const { password: provided, imageData, filename = 'story.png' } = body
-
-  if (!provided || provided !== password) {
-    return NextResponse.json({ error: 'Fel lösenord' }, { status: 401 })
-  }
+  const { imageData, filename = 'story.png' } = body
 
   if (!imageData || !imageData.startsWith('data:image/')) {
     return NextResponse.json({ error: 'Bilddata saknas' }, { status: 400 })

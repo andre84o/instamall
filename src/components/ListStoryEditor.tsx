@@ -97,9 +97,7 @@ export default function ListStoryEditor() {
   const [photo, setPhoto] = useState<string | null>(null)
   const [editing, setEditing] = useState<string | null>(null)
   const [tempVal, setTempVal] = useState('')
-  const [password, setPassword] = useState('')
   const [downloading, setDownloading] = useState(false)
-  const [authError, setAuthError] = useState('')
   const photoRef = useRef<HTMLInputElement>(null)
 
   const startEdit = (key: string) => { setEditing(key); setTempVal(fields[key as keyof Fields]) }
@@ -114,7 +112,6 @@ export default function ListStoryEditor() {
   }
 
   const downloadStory = useCallback(async () => {
-    setAuthError('')
     setDownloading(true)
     try {
       const W = 1080, H = 1920
@@ -254,12 +251,10 @@ export default function ListStoryEditor() {
       const res = await fetch('/api/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, imageData, filename: `list_ref${fields.ref}.png` }),
+        body: JSON.stringify({ imageData, filename: `list_ref${fields.ref}.png` }),
       })
 
       if (!res.ok) {
-        const err = await res.json()
-        setAuthError(err.error ?? 'Fel vid nedladdning')
         setDownloading(false)
         return
       }
@@ -274,10 +269,9 @@ export default function ListStoryEditor() {
 
     } catch (err: unknown) {
       console.error(err)
-      setAuthError('Fel vid generering: ' + (err instanceof Error ? err.message : String(err)))
       setDownloading(false)
     }
-  }, [fields, photo, password])
+  }, [fields, photo])
 
   return (
     <div style={{ minHeight: '100vh', background: '#111', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 12px', fontFamily: SS }}>
@@ -365,31 +359,18 @@ export default function ListStoryEditor() {
         </div>
       </div>
 
-      {/* PASSWORD + DOWNLOAD */}
+      {/* DOWNLOAD */}
       <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-        <input
-          type="password"
-          placeholder="Lösenord för nedladdning"
-          value={password}
-          onChange={e => { setPassword(e.target.value); setAuthError('') }}
-          style={{
-            padding: '10px 18px', fontSize: 12, borderRadius: 6,
-            border: authError ? '1.5px solid #e55' : '1.5px solid #3a3020',
-            background: '#1a1710', color: '#fff', outline: 'none',
-            width: 240, fontFamily: SS, letterSpacing: 1,
-          }}
-        />
-        {authError && <div style={{ color: '#e55', fontSize: 10, letterSpacing: 1 }}>{authError}</div>}
         <button
           onClick={downloadStory}
-          disabled={downloading || !password}
+          disabled={downloading}
           style={{
-            background: downloading || !password ? '#333' : `linear-gradient(135deg,${GOLD},${GOLDD})`,
+            background: downloading ? '#333' : `linear-gradient(135deg,${GOLD},${GOLDD})`,
             color: '#fff', border: 'none', borderRadius: 8,
             padding: '15px 44px', fontSize: 13, fontWeight: 700,
             letterSpacing: 3, textTransform: 'uppercase',
-            cursor: downloading || !password ? 'not-allowed' : 'pointer',
-            boxShadow: downloading || !password ? 'none' : '0 8px 28px rgba(201,169,110,0.45)',
+            cursor: downloading ? 'not-allowed' : 'pointer',
+            boxShadow: downloading ? 'none' : '0 8px 28px rgba(201,169,110,0.45)',
             transition: 'all 0.2s', fontFamily: SS,
           }}
         >
