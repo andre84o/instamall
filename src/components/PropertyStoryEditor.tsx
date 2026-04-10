@@ -339,8 +339,18 @@ export default function PropertyStoryEditor() {
     setSt('loading')
     try {
       const cv = await buildCanvas(d, photo)
-      cv.toBlob(blob => {
+      cv.toBlob(async blob => {
         if (!blob) return
+        const file = new File([blob], 'property.png', { type: 'image/png' })
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file] })
+            setSt('done'); setTimeout(() => setSt('idle'), 3000)
+            return
+          } catch (e) {
+            if ((e as Error).name === 'AbortError') { setSt('idle'); return }
+          }
+        }
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url; a.download = 'property.png'

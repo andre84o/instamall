@@ -352,8 +352,18 @@ export default function StoryEditor() {
     setSt('loading')
     try {
       const cv = await buildCanvas(d, p1, p2)
-      cv.toBlob(blob => {
+      cv.toBlob(async blob => {
         if (!blob) return
+        const file = new File([blob], 'story.png', { type: 'image/png' })
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file] })
+            setSt('done'); setTimeout(() => setSt('idle'), 3000)
+            return
+          } catch (e) {
+            if ((e as Error).name === 'AbortError') { setSt('idle'); return }
+          }
+        }
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url; a.download = 'story.png'
