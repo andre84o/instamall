@@ -15,64 +15,15 @@ const SS = "'Helvetica Neue',Helvetica,Arial,sans-serif";
 // ── Icons ────────────────────────────────────────────────────────────────────
 
 function BedIcon() {
-  return (
-    <svg
-      width="26"
-      height="18"
-      viewBox="0 0 56 38"
-      fill="none"
-      stroke={TEAL}
-      strokeWidth="3.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M2 13V34M54 13V34M2 23H54" />
-      <path d="M2 13C2 13 8 9 20 9H36C48 9 54 13 54 13" />
-      <rect x="7" y="13" width="16" height="10" rx="2" />
-      <rect x="33" y="13" width="16" height="10" rx="2" />
-      <line x1="2" y1="34" x2="2" y2="38" />
-      <line x1="54" y1="34" x2="54" y2="38" />
-    </svg>
-  );
+  return <img src="/bed-icon.svg" width={26} height={18} style={{ objectFit: "contain" }} alt="" />;
 }
 
 function BathIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 40 40"
-      fill="none"
-      stroke={TEAL}
-      strokeWidth="3.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="4" y="16" width="32" height="14" rx="2" />
-      <path d="M4 16V9C4 6.8 5.8 5 8 5C10.2 5 12 6.8 12 9V12" />
-      <line x1="10" y1="30" x2="8" y2="37" />
-      <line x1="30" y1="30" x2="32" y2="37" />
-    </svg>
-  );
+  return <img src="/shower-icon.svg" width={20} height={20} style={{ objectFit: "contain" }} alt="" />;
 }
 
 function AreaIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 40 40"
-      fill="none"
-      stroke={TEAL}
-      strokeWidth="3.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="4" y="4" width="32" height="32" rx="3" />
-      <path d="M4 15H36M15 4V36" />
-      <path d="M22 21L30 13M30 13H24M30 13V19" />
-    </svg>
-  );
+  return <img src="/size-icon.svg" width={20} height={20} style={{ objectFit: "contain" }} alt="" />;
 }
 
 function CamIcon() {

@@ -67,14 +67,11 @@ export default function PropertyStoryEditor() {
         img.src = src
       })
 
-      const loadSvg = (): Promise<HTMLImageElement | null> => new Promise((res) => {
-        const img = new Image()
-        img.onload = () => res(img)
-        img.onerror = () => res(null)
-        img.src = '/house-icon.svg'
-      })
-
-      const [img1, img2, houseImg] = await Promise.all([loadImg(photo1), loadImg(photo2), loadSvg()])
+      const [img1, img2, houseImg, bedImg, showerImg, sizeImg] = await Promise.all([
+        loadImg(photo1), loadImg(photo2),
+        loadImg('/house-icon.svg'), loadImg('/bed-icon.svg'),
+        loadImg('/shower-icon.svg'), loadImg('/size-icon.svg'),
+      ])
 
       // Background
       ctx.fillStyle = '#F9F5F0'
@@ -165,20 +162,17 @@ export default function PropertyStoryEditor() {
       }
 
       const icons = [
-        { val: fields.beds,  emoji: '🛏' },
-        { val: fields.baths, emoji: '🛁' },
-        { val: fields.area,  emoji: '📐' },
-        { val: fields.type,  emoji: null },
+        { val: fields.beds,  img: bedImg },
+        { val: fields.baths, img: showerImg },
+        { val: fields.area,  img: sizeImg },
+        { val: fields.type,  img: houseImg },
       ]
       ctx.textAlign = 'center'
-      icons.forEach(({ val, emoji }, i) => {
+      icons.forEach(({ val, img }, i) => {
         const cx = bx + cw * i + cw / 2
-        if (emoji) {
-          ctx.font = '58px serif'
-          ctx.fillText(emoji, cx, y + 74)
-        } else if (houseImg) {
-          const ih = 58, iw = ih * (600 / 433)
-          ctx.drawImage(houseImg, cx - iw / 2, y + 18, iw, ih)
+        if (img) {
+          const iSize = 56
+          ctx.drawImage(img, cx - iSize / 2, y + 16, iSize, iSize)
         }
         const isLong = val.length > 5
         ctx.font = isLong ? '500 30px Georgia, serif' : 'bold 50px Georgia, serif'
@@ -276,10 +270,10 @@ export default function PropertyStoryEditor() {
     )
 
   const iconDefs = [
-    { field: 'beds', svg: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9V19M21 9V19M3 13H21M3 9C3 9 5 7 9 7H15C19 7 21 9 21 9"></path><rect x="7" y="9" width="4" height="4" rx="0.5"></rect><rect x="13" y="9" width="4" height="4" rx="0.5"></rect></svg> },
-    { field: 'baths', svg: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12H20V15C20 17.2 18.2 19 16 19H8C5.8 19 4 17.2 4 15V12Z"></path><path d="M4 12V8C4 6.9 4.9 6 6 6C7.1 6 8 6.9 8 8V9"></path><line x1="4" y1="12" x2="20" y2="12"></line></svg> },
-    { field: 'area', svg: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"></rect><path d="M3 9H21M9 3V21"></path></svg> },
-    { field: 'type', svg: <svg width="19" height="14" viewBox="0 0 600 433" xmlns="http://www.w3.org/2000/svg" fill="#C9A96E" stroke="none"><g transform="translate(0,433) scale(0.05,-0.05)"><path d="M5070 6978 c-2715 -1997 -2523 -1851 -2571 -1949 -159 -330 199 -665 526 -492 l115 61 0 -1689 0 -1689 -146 0 c-206 0 -302 -89 -203 -189 42 -41 6384 -48 6425 -7 97 97 -8 196 -210 196 l-146 0 0 1690 c0 930 5 1690 10 1690 6 0 44 -22 85 -49 392 -255 813 293 461 601 -37 32 -262 201 -501 376 l-435 318 0 664 c0 618 -3 666 -37 697 -55 50 -984 50 -1026 0 -18 -23 -30 -114 -37 -289 l-10 -256 -450 331 c-774 569 -884 647 -917 647 -18 0 -438 -298 -933 -662z m1215 205 c259 -192 842 -620 2235 -1642 380 -278 715 -529 745 -557 87 -81 73 -203 -28 -256 -96 -49 -57 -73 -1017 632 -470 346 -1384 1016 -1847 1354 -186 135 -353 246 -372 246 -19 0 -141 -80 -272 -177 -867 -645 -2815 -2062 -2848 -2073 -55 -17 -143 29 -180 94 -59 105 -30 133 609 603 330 243 1068 786 1640 1207 572 421 1047 765 1055 765 8 1 134 -87 280 -196z m1975 -664 c0 -471 -2 -499 -35 -480 -19 11 -161 113 -315 226 l-280 207 -6 274 -5 274 320 0 321 0 0 -501z m-1895 -74 c190 -141 779 -574 1310 -963 l965 -707 0 -1778 0 -1777 -1480 0 -1480 0 0 1409 c0 1373 -1 1410 -39 1430 -25 14 -331 21 -859 21 l-820 0 -31 -44 c-27 -40 -31 -209 -31 -1430 l0 -1386 -270 0 -270 0 0 1775 0 1775 1315 965 c723 530 1322 964 1330 965 8 0 170 -115 360 -255z m-905 -3905 l0 -1320 -670 0 -670 0 0 1307 c0 718 6 1312 13 1320 8 7 309 13 670 13 l657 0 0 -1320z"/><path d="M5860 5881 c-647 -197 -523 -1131 150 -1131 650 0 786 935 163 1120 -107 32 -231 36 -313 11z m266 -230 c100 -36 151 -83 196 -181 157 -341 -255 -658 -542 -417 -297 250 -20 729 346 598z"/><path d="M6231 4049 c-27 -28 -31 -110 -31 -599 0 -555 -1 -568 -41 -580 -129 -41 -107 -457 32 -591 l71 -69 894 -5 c998 -6 985 -8 1079 133 71 107 68 461 -5 518 l-50 40 0 547 c0 464 -5 555 -31 593 l-31 44 -928 0 c-816 0 -931 -4 -959 -31z m849 -679 l0 -490 -330 0 -330 0 0 490 0 490 330 0 330 0 0 -490z m875 -5 l6 -485 -331 0 -330 0 0 490 0 491 325 -6 325 -5 5 -485z m105 -801 c0 -152 46 -144 -869 -144 -909 1 -862 -6 -877 123 -15 126 -85 117 879 117 l867 0 0 -96z"/><path d="M5041 2621 c-117 -117 27 -309 175 -233 132 68 89 255 -62 268 -51 5 -83 -5 -113 -35z"/></g></svg> },
+    { field: 'beds',  svg: <img src="/bed-icon.svg" width={19} height={19} style={{ objectFit: 'contain' }} alt="" /> },
+    { field: 'baths', svg: <img src="/shower-icon.svg" width={19} height={19} style={{ objectFit: 'contain' }} alt="" /> },
+    { field: 'area',  svg: <img src="/size-icon.svg" width={19} height={19} style={{ objectFit: 'contain' }} alt="" /> },
+    { field: 'type',  svg: <img src="/house-icon.svg" width={19} height={14} style={{ objectFit: 'contain' }} alt="" /> },
   ]
 
   return (
