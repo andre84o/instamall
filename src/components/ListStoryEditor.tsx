@@ -79,7 +79,7 @@ const ICON_DEFS = [
   { field: 'area',  label: 'Area',  svg: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"></rect><path d="M3 9H21M9 3V21"></path></svg> },
 ]
 
-export default function SoldStoryEditor() {
+export default function ListStoryEditor() {
   const [fields, setFields] = useState<Fields>({
     ref:      '58272',
     location: 'PUNTA PRIMA · SPAIN',
@@ -254,7 +254,7 @@ export default function SoldStoryEditor() {
       const res = await fetch('/api/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, imageData, filename: `sold_ref${fields.ref}.png` }),
+        body: JSON.stringify({ password, imageData, filename: `list_ref${fields.ref}.png` }),
       })
 
       if (!res.ok) {
@@ -267,7 +267,7 @@ export default function SoldStoryEditor() {
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = url; a.download = `sold_ref${fields.ref}.png`
+      a.href = url; a.download = `list_ref${fields.ref}.png`
       document.body.appendChild(a); a.click()
       document.body.removeChild(a); URL.revokeObjectURL(url)
       setDownloading(false)
@@ -283,7 +283,7 @@ export default function SoldStoryEditor() {
     <div style={{ minHeight: '100vh', background: '#111', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 12px', fontFamily: SS }}>
 
       <div style={{ marginBottom: 14, textAlign: 'center' }}>
-        <div style={{ color: GOLD, fontSize: 12, letterSpacing: 4, textTransform: 'uppercase', marginBottom: 4 }}>Sold Story Editor</div>
+        <div style={{ color: GOLD, fontSize: 12, letterSpacing: 4, textTransform: 'uppercase', marginBottom: 4 }}>List Story Editor</div>
         <div style={{ color: '#555', fontSize: 10, letterSpacing: 2 }}>✏️ Klicka på text · 📷 Klicka på bilden för att byta</div>
       </div>
 

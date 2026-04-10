@@ -2,10 +2,10 @@
 import { useState } from 'react'
 import StoryEditor from '@/components/StoryEditor'
 import PropertyStoryEditor from '@/components/PropertyStoryEditor'
-import SoldStoryEditor from '@/components/SoldStoryEditor'
+import ListStoryEditor from '@/components/ListStoryEditor'
 
 export default function Home() {
-  const [active, setActive] = useState<'story' | 'property' | 'sold'>('story')
+  const [active, setActive] = useState<'story' | 'property' | 'list'>('story')
 
   const TEAL = '#3D8A8F'
   const SS = "'Helvetica Neue',Helvetica,Arial,sans-serif"
@@ -15,7 +15,7 @@ export default function Home() {
 
       {/* Tab switcher */}
       <div style={{ display: 'flex', gap: 2, marginTop: 28, marginBottom: 0 }}>
-        {(['story', 'property', 'sold'] as const).map(tab => (
+        {(['story', 'property', 'list'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActive(tab)}
@@ -34,12 +34,12 @@ export default function Home() {
               transition: 'all 0.15s',
             }}
           >
-            {tab === 'story' ? 'Story' : tab === 'property' ? 'Property' : 'Sold'}
+            {tab === 'story' ? 'Story' : tab === 'property' ? 'Property' : 'List'}
           </button>
         ))}
       </div>
 
-      {active === 'story' ? <StoryEditor /> : active === 'property' ? <PropertyStoryEditor /> : <SoldStoryEditor />}
+      {active === 'story' ? <StoryEditor /> : active === 'property' ? <PropertyStoryEditor /> : <ListStoryEditor />}
     </div>
   )
 }
