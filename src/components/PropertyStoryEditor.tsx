@@ -67,7 +67,10 @@ export default function PropertyStoryEditor() {
         img.src = src
       })
 
-      const [img1, img2] = await Promise.all([loadImg(photo1), loadImg(photo2)])
+      const [img1, img2, bedImg, showerImg, sizeImg] = await Promise.all([
+        loadImg(photo1), loadImg(photo2),
+        loadImg('/bed-icon.svg'), loadImg('/shower-icon.svg'), loadImg('/size-icon.svg'),
+      ])
 
       // Background
       ctx.fillStyle = '#F9F5F0'
@@ -158,16 +161,21 @@ export default function PropertyStoryEditor() {
       }
 
       const icons = [
-        { val: fields.beds,  emoji: '🛏' },
-        { val: fields.baths, emoji: '🛁' },
-        { val: fields.area,  emoji: '📐' },
-        { val: fields.type,  emoji: '🏠' },
+        { val: fields.beds,  img: bedImg },
+        { val: fields.baths, img: showerImg },
+        { val: fields.area,  img: sizeImg },
+        { val: fields.type,  img: null },
       ]
       ctx.textAlign = 'center'
-      icons.forEach(({ val, emoji }, i) => {
+      icons.forEach(({ val, img }, i) => {
         const cx = bx + cw * i + cw / 2
-        ctx.font = '58px serif'
-        ctx.fillText(emoji, cx, y + 74)
+        if (img) {
+          const iSize = 56
+          ctx.drawImage(img, cx - iSize / 2, y + 16, iSize, iSize)
+        } else {
+          ctx.font = '58px serif'
+          ctx.fillText('🏠', cx, y + 74)
+        }
         const isLong = val.length > 5
         ctx.font = isLong ? '500 30px Georgia, serif' : 'bold 50px Georgia, serif'
         ctx.fillStyle = '#2C2C2C'
@@ -264,10 +272,10 @@ export default function PropertyStoryEditor() {
     )
 
   const iconDefs = [
-    { field: 'beds', svg: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9V19M21 9V19M3 13H21M3 9C3 9 5 7 9 7H15C19 7 21 9 21 9"></path><rect x="7" y="9" width="4" height="4" rx="0.5"></rect><rect x="13" y="9" width="4" height="4" rx="0.5"></rect></svg> },
-    { field: 'baths', svg: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12H20V15C20 17.2 18.2 19 16 19H8C5.8 19 4 17.2 4 15V12Z"></path><path d="M4 12V8C4 6.9 4.9 6 6 6C7.1 6 8 6.9 8 8V9"></path><line x1="4" y1="12" x2="20" y2="12"></line></svg> },
-    { field: 'area', svg: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="1"></rect><path d="M3 9H21M9 3V21"></path></svg> },
-    { field: 'type', svg: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10.5L12 3L21 10.5V20C21 20.6 20.6 21 20 21H15V16H9V21H4C3.4 21 3 20.6 3 20V10.5Z"></path></svg> },
+    { field: 'beds',  svg: <img src="/bed-icon.svg" width={19} height={19} style={{ objectFit: 'contain' }} alt="" /> },
+    { field: 'baths', svg: <img src="/shower-icon.svg" width={19} height={19} style={{ objectFit: 'contain' }} alt="" /> },
+    { field: 'area',  svg: <img src="/size-icon.svg" width={19} height={19} style={{ objectFit: 'contain' }} alt="" /> },
+    { field: 'type',  svg: <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 10.5L12 3L21 10.5V20C21 20.6 20.6 21 20 21H15V16H9V21H4C3.4 21 3 20.6 3 20V10.5Z"></path></svg> },
   ]
 
   return (

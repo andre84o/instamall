@@ -3,10 +3,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import {
   Sparkles,
-  MapPin,
-  Bed,
-  Bath,
-  Square,
   Home,
   Download,
   Camera,
@@ -150,7 +146,11 @@ export default function ListStoryEditor() {
           img.src = src;
         });
 
-      const [img1, img2] = await Promise.all([loadImg(p1), loadImg(p2)]);
+      const [img1, img2, bedImg, showerImg, positionImg, sizeImg] = await Promise.all([
+        loadImg(p1), loadImg(p2),
+        loadImg('/bed-icon.svg'), loadImg('/shower-icon.svg'),
+        loadImg('/position-icon.svg'), loadImg('/size-icon.svg'),
+      ]);
 
       function roundRect(x: number, y: number, w: number, h: number, r: number) {
         ctx.beginPath();
@@ -227,57 +227,30 @@ export default function ListStoryEditor() {
       ctx.fillRect(cardX + 30, cardY + 170, cardW - 60, 1.5);
 
       // Stats rows with drawn icons
+      const svgIconMap: Record<string, HTMLImageElement | null> = {
+        pin: positionImg, bed: bedImg, bath: showerImg, square: sizeImg,
+      };
       function drawIcon(cx: number, cy: number, type: string) {
+        const img = svgIconMap[type];
+        if (img) {
+          const sz = 44;
+          ctx.drawImage(img, cx - sz / 2, cy - sz / 2, sz, sz);
+          return;
+        }
+        // home (canvas-drawn fallback)
         ctx.save();
         ctx.strokeStyle = "#000";
-        ctx.fillStyle = "none";
         ctx.lineWidth = 3;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
-        const s = 22; // icon half-size
-        if (type === "pin") {
-          // MapPin
-          ctx.beginPath();
-          ctx.arc(cx, cy - 4, s * 0.55, Math.PI, 0);
-          ctx.lineTo(cx, cy + s * 0.8);
-          ctx.closePath(); ctx.stroke();
-          ctx.beginPath(); ctx.arc(cx, cy - 4, 4, 0, Math.PI * 2); ctx.stroke();
-        } else if (type === "bed") {
-          // Bed
-          ctx.beginPath();
-          ctx.moveTo(cx - s, cy - 2); ctx.lineTo(cx - s, cy + s * 0.6);
-          ctx.moveTo(cx + s, cy - 2); ctx.lineTo(cx + s, cy + s * 0.6);
-          ctx.moveTo(cx - s, cy + 2); ctx.lineTo(cx + s, cy + 2);
-          ctx.moveTo(cx - s, cy - 6); ctx.bezierCurveTo(cx - s * 0.3, cy - s, cx + s * 0.3, cy - s, cx + s, cy - 6);
-          ctx.stroke();
-        } else if (type === "bath") {
-          // Bath/shower
-          ctx.beginPath();
-          ctx.moveTo(cx - s, cy); ctx.lineTo(cx + s, cy);
-          ctx.moveTo(cx - s, cy); ctx.lineTo(cx - s, cy - s * 0.8);
-          ctx.arc(cx - s * 0.5, cy - s * 0.8, s * 0.5, Math.PI, 0);
-          ctx.moveTo(cx - s * 0.7, cy); ctx.lineTo(cx - s * 0.9, cy + s * 0.7);
-          ctx.moveTo(cx + s * 0.7, cy); ctx.lineTo(cx + s * 0.9, cy + s * 0.7);
-          ctx.stroke();
-        } else if (type === "square") {
-          // Square/area
-          ctx.beginPath();
-          ctx.rect(cx - s * 0.7, cy - s * 0.7, s * 1.4, s * 1.4);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(cx - s * 0.7, cy); ctx.lineTo(cx + s * 0.7, cy);
-          ctx.moveTo(cx, cy - s * 0.7); ctx.lineTo(cx, cy + s * 0.7);
-          ctx.stroke();
-        } else if (type === "home") {
-          // Home
-          ctx.beginPath();
-          ctx.moveTo(cx, cy - s * 0.8);
-          ctx.lineTo(cx + s * 0.8, cy - 1);
-          ctx.lineTo(cx + s * 0.8, cy + s * 0.7);
-          ctx.lineTo(cx - s * 0.8, cy + s * 0.7);
-          ctx.lineTo(cx - s * 0.8, cy - 1);
-          ctx.closePath(); ctx.stroke();
-        }
+        const s = 22;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - s * 0.8);
+        ctx.lineTo(cx + s * 0.8, cy - 1);
+        ctx.lineTo(cx + s * 0.8, cy + s * 0.7);
+        ctx.lineTo(cx - s * 0.8, cy + s * 0.7);
+        ctx.lineTo(cx - s * 0.8, cy - 1);
+        ctx.closePath(); ctx.stroke();
         ctx.restore();
       }
 
@@ -403,19 +376,24 @@ export default function ListStoryEditor() {
               {/* Stats */}
               <div className="space-y-3 pb-3">
                 {[
-                  { icon: MapPin, val: d.location, k: "location" as const },
-                  { icon: Bed, val: d.beds, k: "beds" as const },
-                  { icon: Bath, val: d.baths, k: "baths" as const },
-                  { icon: Square, val: d.area, k: "area" as const },
-                  { icon: Home, val: d.type, k: "type" as const },
+                  { src: "/position-icon.svg", val: d.location, k: "location" as const },
+                  { src: "/bed-icon.svg", val: d.beds, k: "beds" as const },
+                  { src: "/shower-icon.svg", val: d.baths, k: "baths" as const },
+                  { src: "/size-icon.svg", val: d.area, k: "area" as const },
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2.5">
-                    <item.icon size={18} strokeWidth={1.5} className="text-black shrink-0" />
+                    <img src={item.src} width={18} height={18} style={{ objectFit: "contain" }} alt="" className="shrink-0" />
                     <div className="text-xs font-semibold text-slate-700 tracking-tight">
                       <Editable value={item.val} onChange={set(item.k)} />
                     </div>
                   </div>
                 ))}
+                <div className="flex items-center gap-2.5">
+                  <Home size={18} strokeWidth={1.5} className="text-black shrink-0" />
+                  <div className="text-xs font-semibold text-slate-700 tracking-tight">
+                    <Editable value={d.type} onChange={set("type")} />
+                  </div>
+                </div>
               </div>
 
               {/* Polaroid (P2) – raka kanter, smalare border, större bild */}
