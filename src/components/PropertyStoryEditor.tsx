@@ -22,6 +22,8 @@ export default function PropertyStoryEditor() {
   const [editing, setEditing] = useState<string | null>(null)
   const [tempVal, setTempVal] = useState('')
   const [downloading, setDownloading] = useState(false)
+  const [password, setPassword] = useState('')
+  const [authError, setAuthError] = useState('')
   const photo1Ref = useRef<HTMLInputElement>(null)
   const photo2Ref = useRef<HTMLInputElement>(null)
 
@@ -51,6 +53,7 @@ export default function PropertyStoryEditor() {
   }
 
   const downloadStory = useCallback(async () => {
+    setAuthError('')
     setDownloading(true)
     try {
       const W = 1080, H = 1920
@@ -209,24 +212,38 @@ export default function PropertyStoryEditor() {
       ctx.fillStyle = '#C9A96E'
       ctx.fillRect(66 + f1w + 28, fy - 9, (W - 132) - f1w - f2w - 56, 2)
 
-      // Download
-      canvas.toBlob(blob => {
-        if (!blob) return
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `property_story_ref${fields.ref}.png`
-        a.click()
-        URL.revokeObjectURL(url)
+      // Send to API for authenticated download
+      const imageData = canvas.toDataURL('image/png')
+      const res = await fetch('/api/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password,
+          imageData,
+          filename: `property_story_ref${fields.ref}.png`,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        setAuthError(err.error ?? 'Fel vid nedladdning')
         setDownloading(false)
-      }, 'image/png')
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `property_story_ref${fields.ref}.png`
+      a.click()
+      URL.revokeObjectURL(url)
+      setDownloading(false)
 
     } catch (err: unknown) {
       console.error(err)
       alert('Fel vid generering: ' + (err instanceof Error ? err.message : String(err)))
       setDownloading(false)
     }
-  }, [fields, photo1, photo2])
+  }, [fields, photo1, photo2, password])
 
   const EditableText = ({ field, style }: { field: string; style: React.CSSProperties }) =>
     editing === field ? (
@@ -328,23 +345,37 @@ export default function PropertyStoryEditor() {
         </div>
       </div>
 
-      {/* DOWNLOAD */}
-      <button
-        onClick={downloadStory}
-        disabled={downloading}
-        style={{
-          marginTop: 22,
-          background: downloading ? '#333' : 'linear-gradient(135deg,#C9A96E,#A8854A)',
-          color: '#fff', border: 'none', borderRadius: 8,
-          padding: '15px 44px', fontSize: 13, fontWeight: 700,
-          letterSpacing: 3, textTransform: 'uppercase',
-          cursor: downloading ? 'not-allowed' : 'pointer',
-          boxShadow: downloading ? 'none' : '0 8px 28px rgba(201,169,110,0.45)',
-          transition: 'all 0.2s',
-        }}
-      >
-        {downloading ? '⏳  Genererar...' : '⬇  Ladda ner  1080 × 1920 px'}
-      </button>
+      {/* PASSWORD + DOWNLOAD */}
+      <div style={{ marginTop: 22, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+        <input
+          type="password"
+          placeholder="Lösenord för nedladdning"
+          value={password}
+          onChange={e => { setPassword(e.target.value); setAuthError('') }}
+          style={{
+            padding: '10px 18px', fontSize: 12, borderRadius: 6,
+            border: authError ? '1.5px solid #e55' : '1.5px solid #3a3020',
+            background: '#1a1710', color: '#fff', outline: 'none',
+            width: 240, fontFamily: 'sans-serif', letterSpacing: 1,
+          }}
+        />
+        {authError && <div style={{ color: '#e55', fontSize: 10, letterSpacing: 1 }}>{authError}</div>}
+        <button
+          onClick={downloadStory}
+          disabled={downloading || !password}
+          style={{
+            background: downloading || !password ? '#333' : 'linear-gradient(135deg,#C9A96E,#A8854A)',
+            color: '#fff', border: 'none', borderRadius: 8,
+            padding: '15px 44px', fontSize: 13, fontWeight: 700,
+            letterSpacing: 3, textTransform: 'uppercase',
+            cursor: downloading || !password ? 'not-allowed' : 'pointer',
+            boxShadow: downloading || !password ? 'none' : '0 8px 28px rgba(201,169,110,0.45)',
+            transition: 'all 0.2s',
+          }}
+        >
+          {downloading ? '⏳  Genererar...' : '⬇  Ladda ner  1080 × 1920 px'}
+        </button>
+      </div>
       <div style={{ marginTop: 10, color: '#444', fontSize: 10, letterSpacing: 1 }}>PNG · Klar för Instagram Stories</div>
     </div>
   )
