@@ -175,12 +175,6 @@ export default function ListStoryEditor() {
         ctx.globalAlpha = 1;
       }
 
-      // Decorative leaves
-      ctx.font = "140px serif";
-      ctx.globalAlpha = 0.15;
-      ctx.fillText("🌿", W - 180, 180);
-      ctx.save(); ctx.translate(160, H - 80); ctx.rotate(Math.PI); ctx.fillText("🌿", 0, 0); ctx.restore();
-      ctx.globalAlpha = 1;
 
       // Header: NEW LISTING! ✨
       ctx.font = `italic 90px ${SF}`;
@@ -371,12 +365,6 @@ export default function ListStoryEditor() {
           ) : (
             <div className="w-full h-full bg-gradient-to-b from-sky-100 to-white" />
           )}
-          <div className="absolute top-4 right-6 text-green-700/20 text-4xl">
-            🌿
-          </div>
-          <div className="absolute bottom-4 left-6 text-green-700/20 text-4xl rotate-180">
-            🌿
-          </div>
         </div>
 
         {/* Content Layer */}
