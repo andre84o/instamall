@@ -282,7 +282,7 @@ async function buildCanvas(d: DesignData, photosrc: string | null): Promise<HTML
 
   // Price
   ctx.font = `300 22px ${SS}`; ctx.fillStyle = MUTED; ctx.textAlign = 'left'
-  ctx.fillText('ASKING PRICE', 60, IY + 52)
+  ctx.fillText('PRICE', 60, IY + 52)
   ctx.font = `bold 88px ${SF}`; ctx.fillStyle = DARK; ctx.textAlign = 'left'
   ctx.fillText(d.price, 54, IY + 148)
 
@@ -308,14 +308,6 @@ async function buildCanvas(d: DesignData, photosrc: string | null): Promise<HTML
     }
   })
 
-  // Type pill + tagline row
-  const PY = SY + SH + 28
-  ctx.font = `bold 24px ${SS}`
-  const TW = ctx.measureText(d.type.toUpperCase()).width + 56
-  ctx.fillStyle = TEAL; rr(ctx, 52, PY, TW, 56, 28); ctx.fill()
-  ctx.fillStyle = WHITE; ctx.textAlign = 'center'
-  ctx.fillText(d.type.toUpperCase(), 52 + TW / 2, PY + 36)
-
   ctx.font = `300 22px ${SS}`; ctx.fillStyle = MUTED; ctx.textAlign = 'center'
   ctx.fillText(d.tagline, W / 2, H - 24)
 
@@ -330,7 +322,7 @@ export default function PropertyStoryEditor() {
     ref:      'REF 58272',
     location: 'Punta Prima, Spain',
     title:    'Modern Bungalow',
-    price:    '229.500 €',
+    price:    '229.500€',
     beds:     '2',
     baths:    '2',
     area:     '67 m²',
@@ -421,7 +413,7 @@ export default function PropertyStoryEditor() {
         <div style={{ flex: 1, background: BG, padding: '5px 9px 3px', display: 'flex', flexDirection: 'column', gap: 4, overflow: 'hidden' }}>
 
           <div>
-            <div style={{ fontSize: 5, color: MUTED, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 1, fontFamily: SS }}>Asking Price</div>
+            <div style={{ fontSize: 5, color: MUTED, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 1, fontFamily: SS }}>Price</div>
             <Editable value={d.price} onChange={set('price')} style={{ fontFamily: SF, fontSize: 18, fontWeight: 'bold', color: DARK }} />
           </div>
 
@@ -446,11 +438,8 @@ export default function PropertyStoryEditor() {
             </div>
           </div>
 
-          {/* Type pill + tagline */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ background: TEAL, borderRadius: 20, padding: '2px 10px' }}>
-              <Editable value={d.type} onChange={set('type')} center style={{ fontSize: 6, color: WHITE, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SS, textAlign: 'center' }} />
-            </div>
+          {/* Tagline */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
             <Editable value={d.tagline} onChange={set('tagline')} style={{ fontSize: 5, color: MUTED, letterSpacing: 1, fontFamily: SS }} />
           </div>
         </div>

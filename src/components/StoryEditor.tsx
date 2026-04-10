@@ -278,7 +278,7 @@ async function buildCanvas(d: DesignData, p1src: string | null, p2src: string | 
 
   // Price label
   ctx.font = `300 25px ${SS}`; ctx.fillStyle = MUTED; ctx.textAlign = 'left'
-  ctx.fillText('ASKING PRICE', 60, IY + 66)
+  ctx.fillText('PRICE', 60, IY + 66)
 
   // Price
   ctx.font = `bold 108px ${SF}`; ctx.fillStyle = DARK; ctx.textAlign = 'left'
@@ -306,16 +306,8 @@ async function buildCanvas(d: DesignData, p1src: string | null, p2src: string | 
     }
   })
 
-  // Type pill
-  const PY = SY + SH + 32
-  ctx.font = `bold 24px ${SS}`
-  const TW = ctx.measureText(d.type.toUpperCase()).width + 64
-  ctx.fillStyle = TEAL; rr(ctx, 52, PY, TW, 62, 31); ctx.fill()
-  ctx.fillStyle = WHITE; ctx.textAlign = 'center'
-  ctx.fillText(d.type.toUpperCase(), 52 + TW / 2, PY + 40)
-
   // Photo 2
-  const P2Y = PY + 90, P2W = W - 104, P2H = H - P2Y - 72
+  const P2Y = SY + SH + 32, P2W = W - 104, P2H = H - P2Y - 72
   if (i2) {
     ctx.save(); rr(ctx, 52, P2Y, P2W, P2H, 20); ctx.clip()
     const s2 = Math.max(P2W / i2.width, P2H / i2.height)
@@ -338,11 +330,11 @@ async function buildCanvas(d: DesignData, p1src: string | null, p2src: string | 
 
 export default function StoryEditor() {
   const [d, setD] = useState<DesignData>({
-    badge:    'New Listing',
+    badge:    'Property type',
     ref:      'REF 58272',
     location: 'Punta Prima, Spain',
     title:    'Modern Bungalow',
-    price:    '229.500 €',
+    price:    '229.500€',
     beds:     '2',
     baths:    '2',
     area:     '67 m²',
@@ -433,7 +425,7 @@ export default function StoryEditor() {
         <div style={{ flex: 1, background: BG, padding: '7px 11px 4px', display: 'flex', flexDirection: 'column', gap: 5, overflow: 'hidden' }}>
 
           <div>
-            <div style={{ fontSize: 6, color: MUTED, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 1, fontFamily: SS }}>Asking Price</div>
+            <div style={{ fontSize: 6, color: MUTED, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 1, fontFamily: SS }}>Price</div>
             <Editable value={d.price} onChange={set('price')} style={{ fontFamily: SF, fontSize: 25, fontWeight: 'bold', color: DARK }} />
           </div>
 
@@ -455,13 +447,6 @@ export default function StoryEditor() {
               <AreaIcon />
               <Editable value={d.area} onChange={set('area')} center style={{ fontFamily: SF, fontSize: 15, fontWeight: 'bold', color: DARK, textAlign: 'center' }} />
               <div style={{ fontSize: 5, color: MUTED, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SS }}>Area</div>
-            </div>
-          </div>
-
-          {/* Type pill */}
-          <div style={{ display: 'flex' }}>
-            <div style={{ background: TEAL, borderRadius: 20, padding: '3px 13px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Editable value={d.type} onChange={set('type')} center style={{ fontSize: 7, color: WHITE, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SS, textAlign: 'center' }} />
             </div>
           </div>
 
