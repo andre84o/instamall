@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const PASSWORD = process.env.DOWNLOAD_PASSWORD ?? 'instamall2024'
-
 export async function POST(req: NextRequest) {
+  const password = process.env.DOWNLOAD_PASSWORD
+  if (!password) {
+    return NextResponse.json({ error: 'Nedladdning är inte konfigurerad' }, { status: 503 })
+  }
+
   let body: { password?: string; imageData?: string; filename?: string }
   try {
     body = await req.json()
@@ -10,9 +13,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Ogiltig förfrågan' }, { status: 400 })
   }
 
-  const { password, imageData, filename = 'story.png' } = body
+  const { password: provided, imageData, filename = 'story.png' } = body
 
-  if (!password || password !== PASSWORD) {
+  if (!provided || provided !== password) {
     return NextResponse.json({ error: 'Fel lösenord' }, { status: 401 })
   }
 
@@ -22,7 +25,8 @@ export async function POST(req: NextRequest) {
 
   const base64 = imageData.replace(/^data:image\/\w+;base64,/, '')
   const buffer = Buffer.from(base64, 'base64')
-  const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '_')
+  // Strip path separators and dots to prevent directory traversal
+  const safeName = filename.replace(/[^a-zA-Z0-9_-]/g, '_') + '.png'
 
   return new NextResponse(buffer, {
     headers: {

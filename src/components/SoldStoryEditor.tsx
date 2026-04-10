@@ -268,8 +268,8 @@ export default function SoldStoryEditor() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url; a.download = `sold_ref${fields.ref}.png`
-      a.click()
-      URL.revokeObjectURL(url)
+      document.body.appendChild(a); a.click()
+      document.body.removeChild(a); URL.revokeObjectURL(url)
       setDownloading(false)
 
     } catch (err: unknown) {
