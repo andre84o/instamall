@@ -431,8 +431,8 @@ export default function StoryEditor() {
             <div style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.40)', borderRadius: 20, padding: '3px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
               <Editable value={d.badge} onChange={set('badge')} center style={{ fontSize: 7, fontWeight: 700, color: WHITE, letterSpacing: 2, textTransform: 'uppercase', fontFamily: SS }} />
             </div>
-            <div style={{ background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 20, padding: '3px 12px', pointerEvents: 'auto' }}>
-              <Editable value={d.ref} onChange={set('ref')} style={{ fontSize: 7, color: 'rgba(255,255,255,0.85)', letterSpacing: 2, fontFamily: SS }} />
+            <div style={{ background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 20, padding: '3px 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
+              <Editable value={d.ref} onChange={set('ref')} center style={{ fontSize: 7, color: 'rgba(255,255,255,0.85)', letterSpacing: 2, fontFamily: SS }} />
             </div>
           </div>
 
