@@ -316,11 +316,6 @@ export default function ListStoryEditor() {
       ctx.fillStyle = "#1A1A1A";
       ctx.textAlign = "center";
       ctx.fillText(priceText, cardX + cardW / 2, cardY + 150);
-      // Manual underline
-      const priceMeasure = ctx.measureText(priceText);
-      const priceLineX = cardX + cardW / 2 - priceMeasure.width / 2;
-      ctx.fillStyle = "#1A1A1A";
-      ctx.fillRect(priceLineX, cardY + 160, priceMeasure.width, 3);
 
       // ── Divider ──
       ctx.fillStyle = "rgba(180,180,180,0.60)";
@@ -333,8 +328,11 @@ export default function ListStoryEditor() {
 
       function drawIcon(cx: number, cy: number, type: string) {
         const img = svgIconMap[type];
-        const sz = 68; // ~28-30px at 1/3 scale preview
-        if (img) ctx.drawImage(img, cx - sz / 2, cy - sz / 2, sz, sz);
+        if (!img) return;
+        const iconH = 78; // 68 * 1.15
+        const aspectRatio = img.naturalWidth > 0 ? img.naturalWidth / img.naturalHeight : 1;
+        const iconW = iconH * aspectRatio;
+        ctx.drawImage(img, cx - iconW / 2, cy - iconH / 2, iconW, iconH);
       }
 
       const statsData = [
@@ -351,7 +349,7 @@ export default function ListStoryEditor() {
         drawIcon(cardX + 58, sy - 8, iconType);
         ctx.font = `600 50px ${SS}`;
         ctx.fillStyle = "#1A1A1A";
-        ctx.fillText(label, cardX + 110, sy);
+        ctx.fillText(label, cardX + 110, sy + 8);
         sy += 100; // 90-100px between rows
       });
 
