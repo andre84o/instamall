@@ -333,7 +333,7 @@ export default function ListStoryEditor() {
       function drawIcon(cx: number, cy: number, type: string) {
         const img = svgIconMap[type];
         if (!img) return;
-        const iconH = 94; // 68 * 1.15 * 1.20
+        const iconH = 94; // 78 * 1.20
         const aspectRatio = img.naturalWidth > 0 ? img.naturalWidth / img.naturalHeight : 1;
         const iconW = iconH * aspectRatio;
         ctx.drawImage(img, cx - iconW / 2, cy - iconH / 2, iconW, iconH);
