@@ -172,8 +172,27 @@ export default function ListStoryEditor() {
 
   const renderCanvas = useCallback(async (): Promise<string | null> => {
     try {
-      // Wait for Cormorant Garamond (loaded via <link> stylesheet in useEffect above)
+      // Load Cormorant Garamond 700 explicitly. On Vercel the <link> stylesheet
+      // may not be parsed yet when canvas renders, so we fetch the Google Fonts
+      // CSS directly, extract the woff2 URL, and register it via FontFace.
       try {
+        if (!document.fonts.check("700 99px 'Cormorant Garamond'")) {
+          const cssRes = await fetch(
+            "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&display=swap",
+            { headers: { "User-Agent": "Mozilla/5.0" } }
+          );
+          const css = await cssRes.text();
+          const match = css.match(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+\.woff2)\)/);
+          if (match) {
+            const font = new FontFace(
+              "Cormorant Garamond",
+              `url(${match[1]}) format('woff2')`,
+              { weight: "700", style: "normal" }
+            );
+            const loaded = await font.load();
+            document.fonts.add(loaded);
+          }
+        }
         await document.fonts.load("700 99px 'Cormorant Garamond'");
         await document.fonts.ready;
       } catch (e) {
