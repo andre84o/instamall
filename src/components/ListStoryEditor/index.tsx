@@ -194,6 +194,10 @@ export default function ListStoryEditor() {
       canvas.width = W; canvas.height = H;
       const ctx = canvas.getContext("2d")!;
 
+      ctx.beginPath();
+      ctx.roundRect(0, 0, W, H, 30);
+      ctx.clip();
+
       const loadImg = (src: string | null): Promise<HTMLImageElement | null> =>
         new Promise((res) => {
           if (!src) { res(null); return; }
