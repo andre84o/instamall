@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   Sparkles,
   Download,
@@ -24,6 +24,52 @@ function HouseIcon({ size = 18, className }: { size?: number; strokeWidth?: numb
         <path d="M6231 4049 c-27 -28 -31 -110 -31 -599 0 -555 -1 -568 -41 -580 -129 -41 -107 -457 32 -591 l71 -69 894 -5 c998 -6 985 -8 1079 133 71 107 68 461 -5 518 l-50 40 0 547 c0 464 -5 555 -31 593 l-31 44 -928 0 c-816 0 -931 -4 -959 -31z m849 -679 l0 -490 -330 0 -330 0 0 490 0 490 330 0 330 0 0 -490z m875 -5 l6 -485 -331 0 -330 0 0 490 0 491 325 -6 325 -5 5 -485z m105 -801 c0 -152 46 -144 -869 -144 -909 1 -862 -6 -877 123 -15 126 -85 117 879 117 l867 0 0 -96z"/>
         <path d="M5041 2621 c-117 -117 27 -309 175 -233 132 68 89 255 -62 268 -51 5 -83 -5 -113 -35z"/>
       </g>
+    </svg>
+  );
+}
+
+// Tropical leaf SVG for UI preview – top-left corner
+function LeafDecorTopLeft() {
+  return (
+    <svg
+      width="90" height="110"
+      viewBox="0 0 90 110"
+      xmlns="http://www.w3.org/2000/svg"
+      className="absolute top-0 left-0 z-20 pointer-events-none"
+      style={{ opacity: 0.92 }}
+    >
+      {/* Leaf 1 – darkest, pointing up-right */}
+      <path d="M8,95 C15,70 40,50 60,20 C55,45 35,65 8,95 Z" fill="#1B4332" />
+      <line x1="8" y1="95" x2="60" y2="20" stroke="rgba(0,40,0,0.18)" strokeWidth="1.5" />
+      {/* Leaf 2 – medium, pointing up */}
+      <path d="M18,100 C22,72 50,48 65,10 C58,38 32,62 18,100 Z" fill="#2D6A4F" />
+      <line x1="18" y1="100" x2="65" y2="10" stroke="rgba(0,40,0,0.15)" strokeWidth="1.2" />
+      {/* Leaf 3 – lighter, pointing right */}
+      <path d="M5,80 C18,68 45,60 80,55 C55,62 25,72 5,80 Z" fill="#40916C" />
+      <line x1="5" y1="80" x2="80" y2="55" stroke="rgba(0,40,0,0.13)" strokeWidth="1" />
+      {/* Leaf 4 – lightest accent */}
+      <path d="M2,60 C12,52 38,48 72,42 C48,50 18,58 2,60 Z" fill="#52B788" />
+    </svg>
+  );
+}
+
+// Tropical leaf SVG for UI preview – bottom-right corner
+function LeafDecorBottomRight() {
+  return (
+    <svg
+      width="90" height="110"
+      viewBox="0 0 90 110"
+      xmlns="http://www.w3.org/2000/svg"
+      className="absolute bottom-0 right-0 z-20 pointer-events-none"
+      style={{ opacity: 0.92, transform: "rotate(180deg)" }}
+    >
+      <path d="M8,95 C15,70 40,50 60,20 C55,45 35,65 8,95 Z" fill="#1B4332" />
+      <line x1="8" y1="95" x2="60" y2="20" stroke="rgba(0,40,0,0.18)" strokeWidth="1.5" />
+      <path d="M18,100 C22,72 50,48 65,10 C58,38 32,62 18,100 Z" fill="#2D6A4F" />
+      <line x1="18" y1="100" x2="65" y2="10" stroke="rgba(0,40,0,0.15)" strokeWidth="1.2" />
+      <path d="M5,80 C18,68 45,60 80,55 C55,62 25,72 5,80 Z" fill="#40916C" />
+      <line x1="5" y1="80" x2="80" y2="55" stroke="rgba(0,40,0,0.13)" strokeWidth="1" />
+      <path d="M2,60 C12,52 38,48 72,42 C48,50 18,58 2,60 Z" fill="#52B788" />
     </svg>
   );
 }
@@ -75,7 +121,7 @@ function Editable({
         setTemp(value);
         setEditing(true);
       }}
-      className={`cursor-pointer hover:bg-sky-50 rounded px-1 transition-all ${className}`}
+      className={`cursor-pointer hover:bg-sky-50/20 rounded px-1 transition-all ${className}`}
     >
       {value}
     </span>
@@ -146,12 +192,36 @@ export default function ListStoryEditor() {
   const [p2, setP2] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
 
+  // Load Cinzel font for UI preview
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap";
+    document.head.appendChild(link);
+    return () => { if (link.parentNode) link.parentNode.removeChild(link); };
+  }, []);
+
   const set = (k: keyof typeof d) => (v: string) =>
     setD((prev) => ({ ...prev, [k]: v }));
 
   const downloadStory = useCallback(async () => {
     setDownloading(true);
     try {
+      // Load Cinzel font for canvas rendering
+      try {
+        if (!document.fonts.check("bold 12px Cinzel")) {
+          const font = new FontFace(
+            "Cinzel",
+            "url(https://fonts.gstatic.com/s/cinzel/v23/8vIU7ww63mVu7gtR-kwKxNvkNOjw-tbnTQ.woff2)"
+          );
+          const loaded = await font.load();
+          document.fonts.add(loaded);
+          await document.fonts.ready;
+        }
+      } catch (e) {
+        console.warn("Cinzel font load failed, using serif fallback:", e);
+      }
+
       const W = 1080, H = 1920;
       const canvas = document.createElement("canvas");
       canvas.width = W; canvas.height = H;
@@ -168,8 +238,8 @@ export default function ListStoryEditor() {
 
       const [img1, img2, houseImg, bedImg, showerImg, positionImg, sizeImg] = await Promise.all([
         loadImg(p1), loadImg(p2),
-        loadImg('/house-icon.svg'), loadImg('/bed-icon.svg'), loadImg('/shower-icon.svg'),
-        loadImg('/position-icon.svg'), loadImg('/size-icon.svg'),
+        loadImg("/house-icon.svg"), loadImg("/bed-icon.svg"), loadImg("/shower-icon.svg"),
+        loadImg("/position-icon.svg"), loadImg("/size-icon.svg"),
       ]);
 
       function roundRect(x: number, y: number, w: number, h: number, r: number) {
@@ -182,7 +252,36 @@ export default function ListStoryEditor() {
         ctx.closePath();
       }
 
-      // Background: light base + blurred p2
+      // Helper: draw a single tropical leaf using bezier curves
+      function drawTropicalLeaf(
+        cx: number, cy: number,
+        len: number, wid: number,
+        angle: number,
+        color: string,
+        alpha = 0.93
+      ) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(-wid * 0.75, -len * 0.22, -wid, -len * 0.58, -wid * 0.25, -len);
+        ctx.bezierCurveTo(-wid * 0.08, -len * 1.04, wid * 0.08, -len * 1.04, wid * 0.25, -len);
+        ctx.bezierCurveTo(wid, -len * 0.58, wid * 0.75, -len * 0.22, 0, 0);
+        ctx.fillStyle = color;
+        ctx.fill();
+        // Center vein
+        ctx.beginPath();
+        ctx.moveTo(0, -8);
+        ctx.lineTo(0, -len + 10);
+        ctx.strokeStyle = "rgba(0,40,0,0.18)";
+        ctx.lineWidth = 5;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // ── Background ──
       ctx.fillStyle = "#ddeaeb";
       ctx.fillRect(0, 0, W, H);
       if (img2) {
@@ -195,105 +294,171 @@ export default function ListStoryEditor() {
         ctx.globalAlpha = 1;
       }
 
+      // ── Tropical leaves – top-left corner ──
+      drawTropicalLeaf(20,  240, 320, 90, Math.PI * 0.08,  "#1B4332", 0.88);
+      drawTropicalLeaf(90,  200, 290, 78, Math.PI * 0.28,  "#2D6A4F", 0.90);
+      drawTropicalLeaf(180, 260, 260, 70, Math.PI * 0.48,  "#40916C", 0.88);
+      drawTropicalLeaf(55,  130, 230, 62, -Math.PI * 0.08, "#52B788", 0.82);
+      drawTropicalLeaf(130, 160, 200, 55,  Math.PI * 0.18, "#74C69D", 0.75);
 
-      // Header: NEW LISTING! ✨
-      ctx.font = `italic 90px ${SF}`;
-      ctx.fillStyle = "#ffffff";
+      // ── Tropical leaves – bottom-right corner ──
+      drawTropicalLeaf(W - 20,  H - 240, 320, 90, Math.PI + Math.PI * 0.08,  "#1B4332", 0.88);
+      drawTropicalLeaf(W - 90,  H - 200, 290, 78, Math.PI + Math.PI * 0.28,  "#2D6A4F", 0.90);
+      drawTropicalLeaf(W - 180, H - 260, 260, 70, Math.PI + Math.PI * 0.48,  "#40916C", 0.88);
+      drawTropicalLeaf(W - 55,  H - 130, 230, 62, Math.PI - Math.PI * 0.08,  "#52B788", 0.82);
+      drawTropicalLeaf(W - 130, H - 160, 200, 55, Math.PI + Math.PI * 0.18,  "#74C69D", 0.75);
+
+      // ── Title "NEW LISTING!" with Cinzel ──
+      const titleText = d.title.toUpperCase();
+      const titleY = 195;
+      const CINZEL = `Cinzel, ${SF}`;
+
       ctx.textAlign = "center";
-      ctx.shadowColor = "rgba(0,0,0,0.3)"; ctx.shadowBlur = 12;
-      ctx.fillText(d.title, W / 2 - 30, 200);
-      ctx.shadowBlur = 0;
-      ctx.font = "60px serif";
-      ctx.fillStyle = "#f59e0b";
-      const titleW = ctx.measureText(d.title).width;
-      ctx.fillText("✨", W / 2 + titleW / 2 + 10, 190);
+      // Measure title width to place emoji
+      ctx.font = `bold 92px ${CINZEL}`;
+      const titleMetricsW = ctx.measureText(titleText).width;
+      const titleCenterX = W / 2 - 50; // offset left to make room for emoji
 
-      // Hero image (aspect 1.6:1, no border, rounded)
-      const heroX = 70, heroY = 270, heroW = W - 140, heroH = Math.round(heroW / 1.6);
+      // Drop shadow
+      ctx.shadowColor = "rgba(0,0,0,0.25)";
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 3;
+
+      // Fill: off-white
+      ctx.fillStyle = "#F2F2EE";
+      ctx.fillText(titleText, titleCenterX, titleY);
+
+      // Stroke: thin gray outline (no shadow on stroke)
+      ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+      ctx.strokeStyle = "#7A7A7A";
+      ctx.lineWidth = 1.5;
+      ctx.strokeText(titleText, titleCenterX, titleY);
+
+      // Sparkle emoji ✨ after title
+      ctx.shadowBlur = 0;
+      ctx.font = "68px serif";
+      ctx.fillStyle = "#f59e0b";
+      ctx.fillText("✨", titleCenterX + titleMetricsW / 2 + 36, titleY - 4);
+
+      // ── Hero image (aspect 1.6:1, rounded) ──
+      const heroX = 70, heroY = 275, heroW = W - 140, heroH = Math.round(heroW / 1.6);
       if (img1) {
         ctx.save();
         roundRect(heroX, heroY, heroW, heroH, 24);
         ctx.clip();
         const s = Math.max(heroW / img1.width, heroH / img1.height);
-        ctx.drawImage(img1, heroX + (heroW - img1.width * s) / 2, heroY + (heroH - img1.height * s) / 2, img1.width * s, img1.height * s);
+        ctx.drawImage(img1,
+          heroX + (heroW - img1.width * s) / 2,
+          heroY + (heroH - img1.height * s) / 2,
+          img1.width * s, img1.height * s
+        );
         ctx.restore();
       } else {
         ctx.fillStyle = "#b0cccc";
         roundRect(heroX, heroY, heroW, heroH, 24); ctx.fill();
       }
 
-      // Info card (matches bg-gray-200/75, border-black/20)
-      const cardX = 130, cardW = W - 260;
-      const cardY = heroY + heroH + 80;
-      const cardH = 740;
-      ctx.fillStyle = "rgba(210,215,215,0.75)";
-      roundRect(cardX, cardY, cardW, cardH, 18); ctx.fill();
-      ctx.strokeStyle = "rgba(0,0,0,0.20)"; ctx.lineWidth = 2;
-      roundRect(cardX, cardY, cardW, cardH, 18); ctx.stroke();
+      // ── Info card: white semi-transparent, rounded 20px ──
+      const cardX = 100, cardW = W - 200;
+      const cardY = heroY + heroH + 70;
+      const cardH = 860;
 
-      // Ref
-      ctx.font = `400 30px ${SS}`;
-      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.shadowColor = "rgba(0,0,0,0.14)";
+      ctx.shadowBlur = 22;
+      ctx.shadowOffsetY = 6;
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      roundRect(cardX, cardY, cardW, cardH, 20);
+      ctx.fill();
+      ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+
+      // ── Ref – light gray, small, discrete ──
+      ctx.font = `400 34px ${SS}`;
+      ctx.fillStyle = "#999999";
       ctx.textAlign = "center";
-      ctx.fillText(d.ref, cardX + cardW / 2, cardY + 55);
+      ctx.fillText(d.ref, cardX + cardW / 2, cardY + 62);
 
-      // Price
-      ctx.font = `900 76px ${SS}`;
-      ctx.fillStyle = "#0f172a";
-      ctx.fillText("Price: " + d.price, cardX + cardW / 2, cardY + 145);
+      // ── Price – black, serif, underlined ──
+      const priceText = "Price: " + d.price;
+      ctx.font = `700 74px ${SF}`;
+      ctx.fillStyle = "#1A1A1A";
+      ctx.textAlign = "center";
+      ctx.fillText(priceText, cardX + cardW / 2, cardY + 150);
+      // Manual underline
+      const priceMeasure = ctx.measureText(priceText);
+      const priceLineX = cardX + cardW / 2 - priceMeasure.width / 2;
+      ctx.fillStyle = "#1A1A1A";
+      ctx.fillRect(priceLineX, cardY + 160, priceMeasure.width, 3);
 
-      // Divider
-      ctx.fillStyle = "rgba(120,120,120,0.45)";
-      ctx.fillRect(cardX + 30, cardY + 170, cardW - 60, 1.5);
+      // ── Divider ──
+      ctx.fillStyle = "rgba(180,180,180,0.60)";
+      ctx.fillRect(cardX + 30, cardY + 185, cardW - 60, 1.5);
 
-      // Stats rows with SVG icons
+      // ── Stats rows: larger icons, bigger text, more line height ──
       const svgIconMap: Record<string, HTMLImageElement | null> = {
         pin: positionImg, bed: bedImg, bath: showerImg, square: sizeImg, home: houseImg,
       };
+
       function drawIcon(cx: number, cy: number, type: string) {
         const img = svgIconMap[type];
-        const sz = 50;
+        const sz = 68; // ~28-30px at 1/3 scale preview
         if (img) ctx.drawImage(img, cx - sz / 2, cy - sz / 2, sz, sz);
       }
 
       const statsData = [
         { label: d.location, iconType: "pin" },
-        { label: d.beds, iconType: "bed" },
-        { label: d.baths, iconType: "bath" },
-        { label: d.area, iconType: "square" },
-        { label: d.type, iconType: "home" },
+        { label: d.beds,     iconType: "bed" },
+        { label: d.baths,    iconType: "bath" },
+        { label: d.area,     iconType: "square" },
+        { label: d.type,     iconType: "home" },
       ];
+
       ctx.textAlign = "left";
-      let sy = cardY + 240;
+      let sy = cardY + 268;
       statsData.forEach(({ label, iconType }) => {
-        drawIcon(cardX + 50, sy - 14, iconType);
-        ctx.font = `600 40px ${SS}`;
-        ctx.fillStyle = "#334155";
-        ctx.fillText(label, cardX + 96, sy);
-        sy += 90;
+        drawIcon(cardX + 58, sy - 8, iconType);
+        ctx.font = `600 50px ${SS}`;
+        ctx.fillStyle = "#1A1A1A";
+        ctx.fillText(label, cardX + 110, sy);
+        sy += 100; // 90-100px between rows
       });
 
-      // Polaroid (photo 2) – straight edges, rotated 8deg
+      // ── Polaroid (photo 2) – wider proportions, clear white border ──
       if (img2) {
         ctx.save();
-        const polX = cardX + cardW - 240, polY = cardY + 200;
+        const frameW = 390, frameH = 470, pad = 14, bottomPad = 90;
+        const polX = cardX + cardW - 330, polY = cardY + 175;
         ctx.translate(polX, polY);
         ctx.rotate(8 * Math.PI / 180);
-        // White frame
-        ctx.fillStyle = "#fff";
-        ctx.shadowColor = "rgba(0,0,0,0.3)"; ctx.shadowBlur = 25; ctx.shadowOffsetY = 8;
-        const frameW = 300, frameH = 380, pad = 8, bottomPad = 70;
+
+        // Shadow behind polaroid
+        ctx.shadowColor = "rgba(0,0,0,0.32)";
+        ctx.shadowBlur = 32;
+        ctx.shadowOffsetX = 4;
+        ctx.shadowOffsetY = 12;
+        ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, frameW, frameH);
-        ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-        // Photo inside
+        ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+
+        // Photo clipped inside the polaroid frame
         const pw = frameW - pad * 2, ph = frameH - pad - bottomPad;
-        ctx.beginPath(); ctx.rect(pad, pad, pw, ph); ctx.clip();
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(pad, pad, pw, ph);
+        ctx.clip();
         const ps = Math.max(pw / img2.width, ph / img2.height);
-        ctx.drawImage(img2, pad + (pw - img2.width * ps) / 2, pad + (ph - img2.height * ps) / 2, img2.width * ps, img2.height * ps);
+        ctx.drawImage(
+          img2,
+          pad + (pw - img2.width * ps) / 2,
+          pad + (ph - img2.height * ps) / 2,
+          img2.width * ps,
+          img2.height * ps
+        );
+        ctx.restore();
         ctx.restore();
       }
 
-      // Download
+      // ── Download ──
       const imageData = canvas.toDataURL("image/png");
       const res = await fetch("/api/download", {
         method: "POST",
@@ -330,7 +495,11 @@ export default function ListStoryEditor() {
         id="story-canvas"
         className="relative w-[360px] h-[640px] bg-white rounded-xl shadow-2xl overflow-hidden border-[6px] border-slate-800"
       >
-        {/* BAKGRUND: Använder Foto 2 som suddig bakgrund om den finns */}
+        {/* Leaf decorations */}
+        <LeafDecorTopLeft />
+        <LeafDecorBottomRight />
+
+        {/* Background: blurred photo 2 */}
         <div className="absolute inset-0 z-0">
           {p2 ? (
             <img
@@ -344,15 +513,26 @@ export default function ListStoryEditor() {
 
         {/* Content Layer */}
         <div className="relative z-10 flex flex-col h-full">
-          {/* Header */}
-          <div className="pt-10 pb-4 text-center">
-            <h1 className="flex items-center justify-center gap-2 text-2xl font-serif tracking-[0.15em] text-white drop-shadow-md">
+          {/* Header – Cinzel, off-white, letter-spaced */}
+          <div className="pt-9 pb-3 text-center">
+            <h1
+              className="flex items-center justify-center gap-1.5 drop-shadow-md"
+              style={{
+                fontFamily: "'Cinzel', Georgia, serif",
+                fontWeight: 700,
+                fontSize: "19px",
+                letterSpacing: "0.12em",
+                color: "#F2F2EE",
+                WebkitTextStroke: "0.4px #7A7A7A",
+                textTransform: "uppercase",
+              }}
+            >
               <Editable value={d.title} onChange={set("title")} center />
-              <Sparkles className="text-amber-400 h-5 w-5" />
+              <Sparkles className="text-amber-400 h-4 w-4 shrink-0" />
             </h1>
           </div>
 
-          {/* Huvudbild (P1) – bred, lite mer höjd */}
+          {/* Huvudbild (P1) */}
           <div className="px-4">
             <Photo
               src={p1}
@@ -362,49 +542,94 @@ export default function ListStoryEditor() {
             />
           </div>
 
-          {/* Info Card – nedflyttad, semi-transparent, tunn border */}
-          <div className="px-11 mt-6 flex-1 pb-10">
-            <div className="bg-gray-200/75 backdrop-blur-sm rounded-lg p-3 pt-[12px] pb-6 h-fit relative border border-black/20">
-              <div className="text-center mb-3 -mt-2">
-                <div className="text-black/70 text-[12px] mb-1 tracking-tight">
+          {/* Info Card – white semi-transparent, rounded-2xl */}
+          <div className="px-10 mt-5 flex-1 pb-8">
+            <div
+              className="backdrop-blur-sm rounded-[20px] p-3 pt-[10px] pb-5 h-fit relative"
+              style={{
+                background: "rgba(255,255,255,0.85)",
+                boxShadow: "0 4px 18px rgba(0,0,0,0.13)",
+              }}
+            >
+              <div className="text-center mb-2 -mt-1">
+                {/* Ref – small, light gray */}
+                <div
+                  className="text-[10px] mb-1 tracking-tight"
+                  style={{ color: "#999999" }}
+                >
                   <Editable value={d.ref} onChange={set("ref")} />
                 </div>
-                <div className="text-2xl font-black text-slate-900 tracking-tight">
+                {/* Price – black, serif, underline */}
+                <div
+                  className="font-bold tracking-tight"
+                  style={{
+                    fontFamily: SF,
+                    fontSize: "22px",
+                    color: "#1A1A1A",
+                    textDecoration: "underline",
+                    textUnderlineOffset: "3px",
+                  }}
+                >
                   Price: <Editable value={d.price} onChange={set("price")} />
                 </div>
-                <div className="h-[0.8px] w-[full] bg-gray-400/65 my-1" />
+                <div className="h-[0.8px] w-full bg-gray-300/70 my-1.5" />
               </div>
 
-              {/* Stats */}
-              <div className="space-y-3 pb-3">
+              {/* Stats – larger icons, more spacing */}
+              <div className="space-y-[10px] pb-2">
                 {[
                   { src: "/position-icon.svg", val: d.location, k: "location" as const },
-                  { src: "/bed-icon.svg", val: d.beds, k: "beds" as const },
-                  { src: "/shower-icon.svg", val: d.baths, k: "baths" as const },
-                  { src: "/size-icon.svg", val: d.area, k: "area" as const },
+                  { src: "/bed-icon.svg",      val: d.beds,     k: "beds" as const },
+                  { src: "/shower-icon.svg",   val: d.baths,    k: "baths" as const },
+                  { src: "/size-icon.svg",     val: d.area,     k: "area" as const },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-2.5">
-                    <img src={item.src} width={18} height={18} style={{ objectFit: "contain" }} alt="" className="shrink-0" />
-                    <div className="text-xs font-semibold text-slate-700 tracking-tight">
+                  <div key={i} className="flex items-center gap-2">
+                    <img
+                      src={item.src}
+                      width={28}
+                      height={28}
+                      style={{ objectFit: "contain", filter: "brightness(0) saturate(100%) invert(16%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(25%)" }}
+                      alt=""
+                      className="shrink-0"
+                    />
+                    <div
+                      className="font-semibold tracking-tight"
+                      style={{ fontSize: "13px", color: "#1A1A1A" }}
+                    >
                       <Editable value={item.val} onChange={set(item.k)} />
                     </div>
                   </div>
                 ))}
-                <div className="flex items-center gap-2.5">
-                  <HouseIcon size={18} className="text-black shrink-0" />
-                  <div className="text-xs font-semibold text-slate-700 tracking-tight">
+                <div className="flex items-center gap-2">
+                  <HouseIcon size={28} className="shrink-0" style={{ color: "#3A3A3A" } as React.CSSProperties} />
+                  <div
+                    className="font-semibold tracking-tight"
+                    style={{ fontSize: "13px", color: "#1A1A1A" }}
+                  >
                     <Editable value={d.type} onChange={set("type")} />
                   </div>
                 </div>
               </div>
 
-              {/* Polaroid (P2) – raka kanter, smalare border, större bild */}
-              <div className="absolute -right-6 top-[45%] -translate-y-1/2 mt-[40px] w-33 bg-white p-[5px] pb-7 shadow-2xl transform rotate-[8deg] border-[2.5px] border-white z-30">
+              {/* Polaroid (P2) – wider, clearer border */}
+              <div
+                className="absolute bg-white shadow-2xl transform rotate-[8deg] z-30"
+                style={{
+                  right: "-28px",
+                  top: "44%",
+                  transform: "translateY(-50%) rotate(8deg)",
+                  padding: "5px",
+                  paddingBottom: "26px",
+                  width: "140px",
+                  boxShadow: "2px 6px 20px rgba(0,0,0,0.32)",
+                  border: "2.5px solid #fff",
+                }}
+              >
                 <Photo
                   src={p2}
                   onLoad={setP2}
                   label="Poolbild"
-                  className="w-full h-29"
+                  className="w-full h-[112px]"
                 />
               </div>
             </div>
@@ -417,25 +642,25 @@ export default function ListStoryEditor() {
         disabled={downloading}
         style={{
           marginTop: 24,
-          background: downloading ? '#1A3030' : 'linear-gradient(135deg,#3D8A8F,#2C6E73)',
-          color: '#fff',
-          border: 'none',
+          background: downloading ? "#1A3030" : "linear-gradient(135deg,#3D8A8F,#2C6E73)",
+          color: "#fff",
+          border: "none",
           borderRadius: 8,
-          padding: '15px 48px',
+          padding: "15px 48px",
           fontSize: 11,
           fontWeight: 700,
           letterSpacing: 4,
-          textTransform: 'uppercase' as const,
-          cursor: downloading ? 'not-allowed' : 'pointer',
-          boxShadow: downloading ? 'none' : '0 8px 32px rgba(61,138,143,0.42)',
+          textTransform: "uppercase" as const,
+          cursor: downloading ? "not-allowed" : "pointer",
+          boxShadow: downloading ? "none" : "0 8px 32px rgba(61,138,143,0.42)",
           fontFamily: SS,
-          transition: 'all 0.2s',
-          display: 'flex',
-          alignItems: 'center',
+          transition: "all 0.2s",
+          display: "flex",
+          alignItems: "center",
           gap: 10,
         }}
       >
-        <Download size={18} /> {downloading ? 'Genererar...' : 'Ladda ner 1080 × 1920 px'}
+        <Download size={18} /> {downloading ? "Genererar..." : "Ladda ner 1080 × 1920 px"}
       </button>
     </div>
   );
