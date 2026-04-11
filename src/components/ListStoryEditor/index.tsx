@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
-  Sparkles,
   Download,
   Camera,
 } from "lucide-react";
@@ -159,11 +158,11 @@ export default function ListStoryEditor() {
   const [p2, setP2] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
 
-  // Load Cinzel font for UI preview
+  // Load Cormorant Garamond font for UI preview
   useEffect(() => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap";
+    link.href = "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&display=swap";
     document.head.appendChild(link);
     return () => { if (link.parentNode) link.parentNode.removeChild(link); };
   }, []);
@@ -171,22 +170,14 @@ export default function ListStoryEditor() {
   const set = (k: keyof typeof d) => (v: string) =>
     setD((prev) => ({ ...prev, [k]: v }));
 
-  const downloadStory = useCallback(async () => {
-    setDownloading(true);
+  const renderCanvas = useCallback(async (): Promise<string | null> => {
     try {
-      // Load Cinzel font for canvas rendering
+      // Wait for Cormorant Garamond (loaded via <link> stylesheet in useEffect above)
       try {
-        if (!document.fonts.check("bold 12px Cinzel")) {
-          const font = new FontFace(
-            "Cinzel",
-            "url(https://fonts.gstatic.com/s/cinzel/v23/8vIU7ww63mVu7gtR-kwKxNvkNOjw-tbnTQ.woff2)"
-          );
-          const loaded = await font.load();
-          document.fonts.add(loaded);
-          await document.fonts.ready;
-        }
+        await document.fonts.load("700 99px 'Cormorant Garamond'");
+        await document.fonts.ready;
       } catch (e) {
-        console.warn("Cinzel font load failed, using serif fallback:", e);
+        console.warn("Cormorant Garamond load failed, using serif fallback:", e);
       }
 
       const W = 1080, H = 1920;
@@ -207,11 +198,12 @@ export default function ListStoryEditor() {
           img.src = src;
         });
 
-      const [img1, img2, palmImg, houseImg, bedImg, showerImg, positionImg, sizeImg] = await Promise.all([
+      const [img1, img2, palmImg, houseImg, bedImg, showerImg, positionImg, sizeImg, starImg] = await Promise.all([
         loadImg(p1), loadImg(p2),
         loadImg("/palm-overlay.png"),
         loadImg("/house-icon.svg"), loadImg("/bed-icon.svg"), loadImg("/shower-icon.svg"),
         loadImg("/position-icon.svg"), loadImg("/size-icon.svg"),
+        loadImg("/image/star.png"),
       ]);
 
       function roundRect(x: number, y: number, w: number, h: number, r: number) {
@@ -239,46 +231,94 @@ export default function ListStoryEditor() {
 
       // ── Palm overlay (transparent PNG, scaled to full canvas) ──
       if (palmImg) {
-        ctx.globalAlpha = 0.65;
+        ctx.globalAlpha = 0.95;
         ctx.drawImage(palmImg, 0, 0, W, H);
         ctx.globalAlpha = 1;
       }
 
-      // ── Title "NEW LISTING!" with Cinzel ──
+      // ── Title "NEW LISTING!" with Cormorant Garamond ──
       const titleText = d.title.toUpperCase();
-      const titleY = 195;
-      const CINZEL = `Cinzel, ${SF}`;
+      const titleY = 140;
+      const TITLE_FONT = `'Cormorant Garamond', ${SF}`;
 
       ctx.textAlign = "center";
-      // Measure title width to place emoji
-      ctx.font = `bold 92px ${CINZEL}`;
+      ctx.font = `600 120px ${TITLE_FONT}`;
       const titleMetricsW = ctx.measureText(titleText).width;
-      const titleCenterX = W / 2 - 50; // offset left to make room for emoji
+      const titleCenterX = W / 2; // title perfectly centered
 
       // Drop shadow
       ctx.shadowColor = "rgba(0,0,0,0.25)";
       ctx.shadowBlur = 6;
       ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 3;
+      ctx.shadowOffsetY = 5;
 
       // Fill: off-white
       ctx.fillStyle = "#F2F2EE";
       ctx.fillText(titleText, titleCenterX, titleY);
 
       // Stroke: thin gray outline (no shadow on stroke)
-      ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-      ctx.strokeStyle = "#7A7A7A";
+      ctx.shadowBlur = 0; ctx.shadowOffsetY = 1;
+      ctx.strokeStyle = "#d6d6d6";
       ctx.lineWidth = 1.5;
       ctx.strokeText(titleText, titleCenterX, titleY);
 
-      // Sparkle emoji ✨ after title
-      ctx.shadowBlur = 0;
-      ctx.font = "68px serif";
-      ctx.fillStyle = "#f59e0b";
-      ctx.fillText("✨", titleCenterX + titleMetricsW / 2 + 36, titleY - 4);
+      // Star PNG — placed just to the right of the centered title
+      ctx.shadowBlur = 10; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 2;
+      if (starImg && starImg.naturalWidth) {
+        const STAR_SIZE = 150;                    // height in px
+        const STAR_GAP  = -5
+        ;                     // gap between title right edge and star
+        const starAspect = starImg.naturalWidth / starImg.naturalHeight;
+        const starW = STAR_SIZE * starAspect;
+        const starH = STAR_SIZE;
+        const starX = titleCenterX + titleMetricsW / 2 + STAR_GAP;
+        const starY = titleY - starH * 0.72;
+        ctx.drawImage(starImg, starX, starY, starW, starH);
+      }
 
-      // ── Hero image (aspect 1.6:1, rounded) ──
-      const heroX = 70, heroY = 275, heroW = W - 140, heroH = Math.round(heroW / 1.6);
+      // ── Hero image geometry (image is drawn later, above the card border) ──
+      const heroX = 50, heroY = 230, heroW = W - 100, heroH = Math.round(heroW / 1.6);
+
+      // ── Info card: white semi-transparent, rounded 20px ──
+      const cardX = 125, cardW = W - 250;
+      const cardY = heroY + heroH + 70;
+      const cardH = 790;
+
+      ctx.shadowColor = "rgba(0,0,0,0.14)";
+      ctx.shadowBlur = 22;
+      ctx.shadowOffsetY = 6;
+      ctx.fillStyle = "rgba(255,255,255,0.85)";
+      roundRect(cardX, cardY, cardW, cardH, 20);
+      ctx.fill();
+      ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+
+      // Border around info card with inset gap
+      const BORDER_GAP     = 26;         // space between card and border (sides + bottom)
+      const BORDER_TOP_GAP = 140;         // extra space on top — pushes border up toward hero
+      const BORDER_WIDTH   = 5;          // stroke thickness
+      const BORDER_COLOR   = "#ffffff96";  // border color
+      ctx.strokeStyle = BORDER_COLOR;
+      ctx.lineWidth   = BORDER_WIDTH;
+      roundRect(
+        cardX - BORDER_GAP,
+        cardY - BORDER_TOP_GAP,
+        cardW + BORDER_GAP * 2,
+        cardH + BORDER_TOP_GAP + BORDER_GAP,
+        20 + BORDER_GAP
+      );
+      ctx.stroke();
+
+      // ── Hero image (drawn after the border so it overlaps on top) ──
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.35)";
+      ctx.shadowBlur = 22;
+      ctx.shadowOffsetX = 6;
+      ctx.shadowOffsetY = 6;
+      ctx.fillStyle = "#000";
+      roundRect(heroX, heroY, heroW, heroH, 24);
+      ctx.fill();
+      ctx.restore();
+
       if (img1) {
         ctx.save();
         roundRect(heroX, heroY, heroW, heroH, 24);
@@ -295,31 +335,25 @@ export default function ListStoryEditor() {
         roundRect(heroX, heroY, heroW, heroH, 24); ctx.fill();
       }
 
-      // ── Info card: white semi-transparent, rounded 20px ──
-      const cardX = 100, cardW = W - 200;
-      const cardY = heroY + heroH + 70;
-      const cardH = 860;
-
-      ctx.shadowColor = "rgba(0,0,0,0.14)";
-      ctx.shadowBlur = 22;
-      ctx.shadowOffsetY = 6;
-      ctx.fillStyle = "rgba(255,255,255,0.85)";
-      roundRect(cardX, cardY, cardW, cardH, 20);
-      ctx.fill();
-      ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-
       // ── Ref – light gray, small, discrete ──
       ctx.font = `400 34px ${SS}`;
-      ctx.fillStyle = "#999999";
+      ctx.fillStyle = " #222222";
       ctx.textAlign = "center";
       ctx.fillText(d.ref, cardX + cardW / 2, cardY + 62);
 
       // ── Price – black, serif, underlined ──
       const priceText = "Price: " + d.price;
-      ctx.font = `700 74px ${SF}`;
       ctx.fillStyle = "#1A1A1A";
       ctx.textAlign = "center";
-      ctx.fillText(priceText, cardX + cardW / 2, cardY + 150);
+      ctx.letterSpacing = "-3px";          // tighter letter spacing
+      const PRICE_Y_SCALE = 0.92;          // vertical squish (1 = normal, lower = shorter)
+      ctx.save();
+      ctx.translate(cardX + cardW / 2, cardY + 150);
+      ctx.scale(1, PRICE_Y_SCALE);
+      ctx.font = `700 74px ${SS}`;
+      ctx.fillText(priceText, 0, 0);
+      ctx.restore();
+      ctx.letterSpacing = "0px";           // reset so it doesn't leak to next text
 
       // ── Divider ──
       ctx.fillStyle = "rgba(180,180,180,0.60)";
@@ -330,13 +364,44 @@ export default function ListStoryEditor() {
         pin: positionImg, bed: bedImg, bath: showerImg, square: sizeImg, home: houseImg,
       };
 
+      // Icon styling — tweak freely
+      const ICON_COLOR = "#222222"; // any CSS color
+      const ICON_SIZE  = 98;        // height in px (width auto from aspect ratio)
+      const ICON_BOLD  = 0;         // 0 = normal, 1–3 = progressively thicker (dilation)
+
       function drawIcon(cx: number, cy: number, type: string) {
         const img = svgIconMap[type];
-        if (!img) return;
-        const iconH = 94; // 78 * 1.20
-        const aspectRatio = img.naturalWidth > 0 ? img.naturalWidth / img.naturalHeight : 1;
+        if (!img || !img.naturalWidth) return;
+        const aspectRatio = img.naturalWidth / img.naturalHeight;
+        const iconH = ICON_SIZE;
         const iconW = iconH * aspectRatio;
-        ctx.drawImage(img, cx - iconW / 2, cy - iconH / 2, iconW, iconH);
+
+        // Render icon to an offscreen canvas, mask it with the desired color,
+        // then draw the tinted result onto the main canvas.
+        const pad = ICON_BOLD * 2 + 2;
+        const off = document.createElement("canvas");
+        off.width  = Math.ceil(iconW + pad * 2);
+        off.height = Math.ceil(iconH + pad * 2);
+        const octx = off.getContext("2d")!;
+
+        // Draw the SVG (optionally multiple times with offsets for a "bold" dilation)
+        if (ICON_BOLD > 0) {
+          for (let dx = -ICON_BOLD; dx <= ICON_BOLD; dx++) {
+            for (let dy = -ICON_BOLD; dy <= ICON_BOLD; dy++) {
+              octx.drawImage(img, pad + dx, pad + dy, iconW, iconH);
+            }
+          }
+        } else {
+          octx.drawImage(img, pad, pad, iconW, iconH);
+        }
+
+        // Tint: replace all opaque pixels with ICON_COLOR
+        octx.globalCompositeOperation = "source-in";
+        octx.fillStyle = ICON_COLOR;
+        octx.fillRect(0, 0, off.width, off.height);
+
+        // Place on main canvas, centered on (cx, cy)
+        ctx.drawImage(off, cx - off.width / 2, cy - off.height / 2);
       }
 
       const statsData = [
@@ -350,18 +415,18 @@ export default function ListStoryEditor() {
       ctx.textAlign = "left";
       let sy = cardY + 268;
       statsData.forEach(({ label, iconType }) => {
-        drawIcon(cardX + 58, sy - 8, iconType);
-        ctx.font = `600 50px ${SS}`;
-        ctx.fillStyle = "#1A1A1A";
-        ctx.fillText(label, cardX + 110, sy + 8);
-        sy += 100; // 90-100px between rows
+        drawIcon(cardX + 79, sy - 8, iconType);
+        ctx.font = `400 54px ${SS}`;
+        ctx.fillStyle = "#222222";
+        ctx.fillText(label, cardX + 150, sy + 9);
+        sy += 110; // 90-100px between rows
       });
 
       // ── Polaroid (photo 2) – wider proportions, clear white border ──
-      if (img2) {
+      {
         ctx.save();
-        const frameW = 390, frameH = 470, pad = 14, bottomPad = 90;
-        const polX = cardX + cardW - 330, polY = cardY + 175;
+        const frameW = 420, frameH = 510, pad = 22, bottomPad = 104;
+        const polX = cardX + cardW - 330, polY = cardY + 200;
         ctx.translate(polX, polY);
         ctx.rotate(8 * Math.PI / 180);
 
@@ -380,20 +445,40 @@ export default function ListStoryEditor() {
         ctx.beginPath();
         ctx.rect(pad, pad, pw, ph);
         ctx.clip();
-        const ps = Math.max(pw / img2.width, ph / img2.height);
-        ctx.drawImage(
-          img2,
-          pad + (pw - img2.width * ps) / 2,
-          pad + (ph - img2.height * ps) / 2,
-          img2.width * ps,
-          img2.height * ps
-        );
+        if (img2) {
+          const ps = Math.max(pw / img2.width, ph / img2.height);
+          ctx.drawImage(
+            img2,
+            pad + (pw - img2.width * ps) / 2,
+            pad + (ph - img2.height * ps) / 2,
+            img2.width * ps,
+            img2.height * ps
+          );
+        } else {
+          // Placeholder when photo 2 not uploaded
+          ctx.fillStyle = "#cbd5e1";
+          ctx.fillRect(pad, pad, pw, ph);
+          ctx.fillStyle = "#64748b";
+          ctx.font = `700 28px ${SS}`;
+          ctx.textAlign = "center";
+          ctx.fillText("POOLBILD", pad + pw / 2, pad + ph / 2 + 10);
+        }
         ctx.restore();
         ctx.restore();
       }
 
-      // ── Download ──
-      const imageData = canvas.toDataURL("image/png");
+      return canvas.toDataURL("image/png");
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }, [d, p1, p2]);
+
+  const downloadStory = useCallback(async () => {
+    setDownloading(true);
+    try {
+      const imageData = await renderCanvas();
+      if (!imageData) { setDownloading(false); return; }
       const res = await fetch("/api/download", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -411,7 +496,7 @@ export default function ListStoryEditor() {
       console.error(err);
       setDownloading(false);
     }
-  }, [d, p1, p2]);
+  }, [renderCanvas, d.ref]);
 
   return (
     <div className="min-h-screen bg-[#0f172a] flex flex-col items-center py-10 px-4 font-sans text-white">
@@ -446,12 +531,12 @@ export default function ListStoryEditor() {
 
         {/* Content Layer */}
         <div className="relative z-10 flex flex-col h-full">
-          {/* Header – Cinzel, off-white, letter-spaced */}
+          {/* Header – Cormorant Garamond, off-white, letter-spaced */}
           <div className="pt-9 pb-3 text-center">
             <h1
               className="flex items-center justify-center gap-1.5 drop-shadow-md"
               style={{
-                fontFamily: "'Cinzel', Georgia, serif",
+                fontFamily: "'Cormorant Garamond', Georgia, serif",
                 fontWeight: 700,
                 fontSize: "19px",
                 letterSpacing: "0.12em",
@@ -461,7 +546,7 @@ export default function ListStoryEditor() {
               }}
             >
               <Editable value={d.title} onChange={set("title")} center />
-              <Sparkles className="text-amber-400 h-4 w-4 shrink-0" />
+              <img src="/image/star.png" alt="" className="h-7 w-7 shrink-0 object-contain" />
             </h1>
           </div>
 
@@ -488,19 +573,23 @@ export default function ListStoryEditor() {
                 {/* Ref – small, light gray */}
                 <div
                   className="text-[10px] mb-1 tracking-tight"
-                  style={{ color: "#999999" }}
+                  style={{ color: "rgb(88, 88, 88)" }}
                 >
                   <Editable value={d.ref} onChange={set("ref")} />
                 </div>
                 {/* Price – black, serif, underline */}
                 <div
-                  className="font-bold tracking-tight"
+                  className="font-bold"
                   style={{
                     fontFamily: SF,
                     fontSize: "22px",
                     color: "#1A1A1A",
-                    textDecoration: "underline",
+                    textDecoration: "none",
                     textUnderlineOffset: "3px",
+                    letterSpacing: "-1px",
+                    transform: "scaleY(0.82)",
+                    transformOrigin: "center",
+                    display: "inline-block",
                   }}
                 >
                   Price: <Editable value={d.price} onChange={set("price")} />
@@ -548,8 +637,8 @@ export default function ListStoryEditor() {
               <div
                 className="absolute bg-white shadow-2xl transform rotate-[8deg] z-30"
                 style={{
-                  right: "-28px",
-                  top: "44%",
+                  right: "-10px",
+                  top: "57%",
                   transform: "translateY(-50%) rotate(8deg)",
                   padding: "5px",
                   paddingBottom: "26px",
@@ -593,7 +682,7 @@ export default function ListStoryEditor() {
           gap: 10,
         }}
       >
-        <Download size={18} /> {downloading ? "Genererar..." : "Ladda ner 1080 × 1920 px"}
+        <Download size={18} /> {downloading ? "Genererar..." : "Ladda ner (story)"}
       </button>
     </div>
   );
