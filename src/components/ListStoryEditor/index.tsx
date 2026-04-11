@@ -28,49 +28,16 @@ function HouseIcon({ size = 18, className }: { size?: number; strokeWidth?: numb
   );
 }
 
-// Tropical leaf SVG for UI preview – top-left corner
-function LeafDecorTopLeft() {
+// Palm overlay: transparent PNG with leaves in top-left + bottom-right corners.
+// One single image covers the full story frame — no SVG needed.
+function PalmOverlay() {
   return (
-    <svg
-      width="90" height="110"
-      viewBox="0 0 90 110"
-      xmlns="http://www.w3.org/2000/svg"
-      className="absolute top-0 left-0 z-20 pointer-events-none"
+    <img
+      src="/palm-overlay.png"
+      alt=""
+      className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none"
       style={{ opacity: 0.92 }}
-    >
-      {/* Leaf 1 – darkest, pointing up-right */}
-      <path d="M8,95 C15,70 40,50 60,20 C55,45 35,65 8,95 Z" fill="#1B4332" />
-      <line x1="8" y1="95" x2="60" y2="20" stroke="rgba(0,40,0,0.18)" strokeWidth="1.5" />
-      {/* Leaf 2 – medium, pointing up */}
-      <path d="M18,100 C22,72 50,48 65,10 C58,38 32,62 18,100 Z" fill="#2D6A4F" />
-      <line x1="18" y1="100" x2="65" y2="10" stroke="rgba(0,40,0,0.15)" strokeWidth="1.2" />
-      {/* Leaf 3 – lighter, pointing right */}
-      <path d="M5,80 C18,68 45,60 80,55 C55,62 25,72 5,80 Z" fill="#40916C" />
-      <line x1="5" y1="80" x2="80" y2="55" stroke="rgba(0,40,0,0.13)" strokeWidth="1" />
-      {/* Leaf 4 – lightest accent */}
-      <path d="M2,60 C12,52 38,48 72,42 C48,50 18,58 2,60 Z" fill="#52B788" />
-    </svg>
-  );
-}
-
-// Tropical leaf SVG for UI preview – bottom-right corner
-function LeafDecorBottomRight() {
-  return (
-    <svg
-      width="90" height="110"
-      viewBox="0 0 90 110"
-      xmlns="http://www.w3.org/2000/svg"
-      className="absolute bottom-0 right-0 z-20 pointer-events-none"
-      style={{ opacity: 0.92, transform: "rotate(180deg)" }}
-    >
-      <path d="M8,95 C15,70 40,50 60,20 C55,45 35,65 8,95 Z" fill="#1B4332" />
-      <line x1="8" y1="95" x2="60" y2="20" stroke="rgba(0,40,0,0.18)" strokeWidth="1.5" />
-      <path d="M18,100 C22,72 50,48 65,10 C58,38 32,62 18,100 Z" fill="#2D6A4F" />
-      <line x1="18" y1="100" x2="65" y2="10" stroke="rgba(0,40,0,0.15)" strokeWidth="1.2" />
-      <path d="M5,80 C18,68 45,60 80,55 C55,62 25,72 5,80 Z" fill="#40916C" />
-      <line x1="5" y1="80" x2="80" y2="55" stroke="rgba(0,40,0,0.13)" strokeWidth="1" />
-      <path d="M2,60 C12,52 38,48 72,42 C48,50 18,58 2,60 Z" fill="#52B788" />
-    </svg>
+    />
   );
 }
 
@@ -236,8 +203,9 @@ export default function ListStoryEditor() {
           img.src = src;
         });
 
-      const [img1, img2, houseImg, bedImg, showerImg, positionImg, sizeImg] = await Promise.all([
+      const [img1, img2, palmImg, houseImg, bedImg, showerImg, positionImg, sizeImg] = await Promise.all([
         loadImg(p1), loadImg(p2),
+        loadImg("/palm-overlay.png"),
         loadImg("/house-icon.svg"), loadImg("/bed-icon.svg"), loadImg("/shower-icon.svg"),
         loadImg("/position-icon.svg"), loadImg("/size-icon.svg"),
       ]);
@@ -250,35 +218,6 @@ export default function ListStoryEditor() {
         ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
         ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
         ctx.closePath();
-      }
-
-      // Helper: draw a single tropical leaf using bezier curves
-      function drawTropicalLeaf(
-        cx: number, cy: number,
-        len: number, wid: number,
-        angle: number,
-        color: string,
-        alpha = 0.93
-      ) {
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.translate(cx, cy);
-        ctx.rotate(angle);
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.bezierCurveTo(-wid * 0.75, -len * 0.22, -wid, -len * 0.58, -wid * 0.25, -len);
-        ctx.bezierCurveTo(-wid * 0.08, -len * 1.04, wid * 0.08, -len * 1.04, wid * 0.25, -len);
-        ctx.bezierCurveTo(wid, -len * 0.58, wid * 0.75, -len * 0.22, 0, 0);
-        ctx.fillStyle = color;
-        ctx.fill();
-        // Center vein
-        ctx.beginPath();
-        ctx.moveTo(0, -8);
-        ctx.lineTo(0, -len + 10);
-        ctx.strokeStyle = "rgba(0,40,0,0.18)";
-        ctx.lineWidth = 5;
-        ctx.stroke();
-        ctx.restore();
       }
 
       // ── Background ──
@@ -294,19 +233,12 @@ export default function ListStoryEditor() {
         ctx.globalAlpha = 1;
       }
 
-      // ── Tropical leaves – top-left corner ──
-      drawTropicalLeaf(20,  240, 320, 90, Math.PI * 0.08,  "#1B4332", 0.88);
-      drawTropicalLeaf(90,  200, 290, 78, Math.PI * 0.28,  "#2D6A4F", 0.90);
-      drawTropicalLeaf(180, 260, 260, 70, Math.PI * 0.48,  "#40916C", 0.88);
-      drawTropicalLeaf(55,  130, 230, 62, -Math.PI * 0.08, "#52B788", 0.82);
-      drawTropicalLeaf(130, 160, 200, 55,  Math.PI * 0.18, "#74C69D", 0.75);
-
-      // ── Tropical leaves – bottom-right corner ──
-      drawTropicalLeaf(W - 20,  H - 240, 320, 90, Math.PI + Math.PI * 0.08,  "#1B4332", 0.88);
-      drawTropicalLeaf(W - 90,  H - 200, 290, 78, Math.PI + Math.PI * 0.28,  "#2D6A4F", 0.90);
-      drawTropicalLeaf(W - 180, H - 260, 260, 70, Math.PI + Math.PI * 0.48,  "#40916C", 0.88);
-      drawTropicalLeaf(W - 55,  H - 130, 230, 62, Math.PI - Math.PI * 0.08,  "#52B788", 0.82);
-      drawTropicalLeaf(W - 130, H - 160, 200, 55, Math.PI + Math.PI * 0.18,  "#74C69D", 0.75);
+      // ── Palm overlay (transparent PNG, scaled to full canvas) ──
+      if (palmImg) {
+        ctx.globalAlpha = 0.92;
+        ctx.drawImage(palmImg, 0, 0, W, H);
+        ctx.globalAlpha = 1;
+      }
 
       // ── Title "NEW LISTING!" with Cinzel ──
       const titleText = d.title.toUpperCase();
@@ -495,9 +427,8 @@ export default function ListStoryEditor() {
         id="story-canvas"
         className="relative w-[360px] h-[640px] bg-white rounded-xl shadow-2xl overflow-hidden border-[6px] border-slate-800"
       >
-        {/* Leaf decorations */}
-        <LeafDecorTopLeft />
-        <LeafDecorBottomRight />
+        {/* Palm overlay (transparent PNG, leaves in top-left + bottom-right) */}
+        <PalmOverlay />
 
         {/* Background: blurred photo 2 */}
         <div className="absolute inset-0 z-0">
