@@ -35,8 +35,8 @@ function PalmOverlay() {
     <img
       src="/palm-overlay.png"
       alt=""
-      className="absolute inset-0 w-full h-full object-cover z-20 pointer-events-none"
-      style={{ opacity: 0.92 }}
+      className="absolute inset-0 w-full h-full object-cover z-[5] pointer-events-none"
+      style={{ opacity: 0.65 }}
     />
   );
 }
@@ -235,7 +235,7 @@ export default function ListStoryEditor() {
 
       // ── Palm overlay (transparent PNG, scaled to full canvas) ──
       if (palmImg) {
-        ctx.globalAlpha = 0.92;
+        ctx.globalAlpha = 0.65;
         ctx.drawImage(palmImg, 0, 0, W, H);
         ctx.globalAlpha = 1;
       }
