@@ -28,75 +28,53 @@ function HouseIcon({ size = 18, className }: { size?: number; strokeWidth?: numb
   );
 }
 
-// ── Palm frond decorations (UI preview) ─────────────────────────────
-// Two fronds per component: one angled more downward, one more sideways.
-// Left leaflets extend off-canvas and are clipped by the card's overflow:hidden.
-function PalmDecorTopLeft() {
+// Tropical leaf SVG for UI preview – top-left corner
+function LeafDecorTopLeft() {
   return (
     <svg
-      width="130" height="165"
-      viewBox="-20 -20 150 185"
+      width="90" height="110"
+      viewBox="0 0 90 110"
       xmlns="http://www.w3.org/2000/svg"
       className="absolute top-0 left-0 z-20 pointer-events-none"
-      style={{ opacity: 0.93 }}
+      style={{ opacity: 0.92 }}
     >
-      {/* Frond 1 – stem going down-right from corner */}
-      <path d="M0,0 Q12,75 46,165" stroke="#1B4332" strokeWidth="4" fill="none" strokeLinecap="round"/>
-      {/* Right leaflets */}
-      <path d="M7,26 Q26,19 43,7 Q24,14 7,26Z" fill="#2D6A4F"/>
-      <path d="M12,52 Q32,45 50,33 Q31,40 12,52Z" fill="#40916C"/>
-      <path d="M20,82 Q40,76 58,64 Q39,71 20,82Z" fill="#52B788"/>
-      <path d="M32,114 Q50,109 67,98 Q49,104 32,114Z" fill="#40916C"/>
-      {/* Left leaflets (extend off edge – clipped) */}
-      <path d="M6,25 Q-11,18 -24,8 Q-13,17 6,25Z" fill="#1B4332"/>
-      <path d="M11,51 Q-7,44 -20,35 Q-9,43 11,51Z" fill="#2D6A4F"/>
-      <path d="M19,81 Q3,75 -10,67 Q1,74 19,81Z" fill="#1B4332"/>
-
-      {/* Frond 2 – stem going right from corner */}
-      <path d="M0,12 Q52,22 130,70" stroke="#2D6A4F" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
-      {/* Upper leaflets */}
-      <path d="M30,16 Q36,2 48,-5 Q38,5 30,16Z" fill="#40916C"/>
-      <path d="M60,25 Q66,11 78,4 Q68,14 60,25Z" fill="#52B788"/>
-      <path d="M90,38 Q96,24 108,17 Q98,27 90,38Z" fill="#40916C"/>
-      {/* Lower leaflets */}
-      <path d="M29,17 Q35,30 44,36 Q36,27 29,17Z" fill="#2D6A4F"/>
-      <path d="M59,26 Q65,39 74,45 Q66,36 59,26Z" fill="#2D6A4F"/>
-      <path d="M89,39 Q95,52 104,58 Q96,49 89,39Z" fill="#1B4332"/>
+      {/* Leaf 1 – darkest, pointing up-right */}
+      <path d="M8,95 C15,70 40,50 60,20 C55,45 35,65 8,95 Z" fill="#1B4332" />
+      <line x1="8" y1="95" x2="60" y2="20" stroke="rgba(0,40,0,0.18)" strokeWidth="1.5" />
+      {/* Leaf 2 – medium, pointing up */}
+      <path d="M18,100 C22,72 50,48 65,10 C58,38 32,62 18,100 Z" fill="#2D6A4F" />
+      <line x1="18" y1="100" x2="65" y2="10" stroke="rgba(0,40,0,0.15)" strokeWidth="1.2" />
+      {/* Leaf 3 – lighter, pointing right */}
+      <path d="M5,80 C18,68 45,60 80,55 C55,62 25,72 5,80 Z" fill="#40916C" />
+      <line x1="5" y1="80" x2="80" y2="55" stroke="rgba(0,40,0,0.13)" strokeWidth="1" />
+      {/* Leaf 4 – lightest accent */}
+      <path d="M2,60 C12,52 38,48 72,42 C48,50 18,58 2,60 Z" fill="#52B788" />
     </svg>
   );
 }
 
-function PalmDecorBottomRight() {
+// Tropical leaf SVG for UI preview – bottom-right corner
+function LeafDecorBottomRight() {
   return (
     <svg
-      width="130" height="165"
-      viewBox="-20 -20 150 185"
+      width="90" height="110"
+      viewBox="0 0 90 110"
       xmlns="http://www.w3.org/2000/svg"
       className="absolute bottom-0 right-0 z-20 pointer-events-none"
-      style={{ opacity: 0.93, transform: "rotate(180deg)" }}
+      style={{ opacity: 0.92, transform: "rotate(180deg)" }}
     >
-      {/* Same paths as top-left – rotation mirrors into bottom-right corner */}
-      <path d="M0,0 Q12,75 46,165" stroke="#1B4332" strokeWidth="4" fill="none" strokeLinecap="round"/>
-      <path d="M7,26 Q26,19 43,7 Q24,14 7,26Z" fill="#2D6A4F"/>
-      <path d="M12,52 Q32,45 50,33 Q31,40 12,52Z" fill="#40916C"/>
-      <path d="M20,82 Q40,76 58,64 Q39,71 20,82Z" fill="#52B788"/>
-      <path d="M32,114 Q50,109 67,98 Q49,104 32,114Z" fill="#40916C"/>
-      <path d="M6,25 Q-11,18 -24,8 Q-13,17 6,25Z" fill="#1B4332"/>
-      <path d="M11,51 Q-7,44 -20,35 Q-9,43 11,51Z" fill="#2D6A4F"/>
-      <path d="M19,81 Q3,75 -10,67 Q1,74 19,81Z" fill="#1B4332"/>
-      <path d="M0,12 Q52,22 130,70" stroke="#2D6A4F" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
-      <path d="M30,16 Q36,2 48,-5 Q38,5 30,16Z" fill="#40916C"/>
-      <path d="M60,25 Q66,11 78,4 Q68,14 60,25Z" fill="#52B788"/>
-      <path d="M90,38 Q96,24 108,17 Q98,27 90,38Z" fill="#40916C"/>
-      <path d="M29,17 Q35,30 44,36 Q36,27 29,17Z" fill="#2D6A4F"/>
-      <path d="M59,26 Q65,39 74,45 Q66,36 59,26Z" fill="#2D6A4F"/>
-      <path d="M89,39 Q95,52 104,58 Q96,49 89,39Z" fill="#1B4332"/>
+      <path d="M8,95 C15,70 40,50 60,20 C55,45 35,65 8,95 Z" fill="#1B4332" />
+      <line x1="8" y1="95" x2="60" y2="20" stroke="rgba(0,40,0,0.18)" strokeWidth="1.5" />
+      <path d="M18,100 C22,72 50,48 65,10 C58,38 32,62 18,100 Z" fill="#2D6A4F" />
+      <line x1="18" y1="100" x2="65" y2="10" stroke="rgba(0,40,0,0.15)" strokeWidth="1.2" />
+      <path d="M5,80 C18,68 45,60 80,55 C55,62 25,72 5,80 Z" fill="#40916C" />
+      <line x1="5" y1="80" x2="80" y2="55" stroke="rgba(0,40,0,0.13)" strokeWidth="1" />
+      <path d="M2,60 C12,52 38,48 72,42 C48,50 18,58 2,60 Z" fill="#52B788" />
     </svg>
   );
 }
 
-// Include Segoe UI for better Windows rendering consistency with browser UI
-const SS = "'Segoe UI','Helvetica Neue',Helvetica,Arial,sans-serif";
+const SS = "'Helvetica Neue',Helvetica,Arial,sans-serif";
 const SF = "Georgia,'Times New Roman',serif";
 
 // ── Editable Field ─────────────────────────────────────────────────
@@ -241,7 +219,7 @@ export default function ListStoryEditor() {
           await document.fonts.ready;
         }
       } catch (e) {
-        console.warn("Cinzel font load failed:", e);
+        console.warn("Cinzel font load failed, using serif fallback:", e);
       }
 
       const W = 1080, H = 1920;
@@ -274,66 +252,32 @@ export default function ListStoryEditor() {
         ctx.closePath();
       }
 
-      // ── Palm leaf helpers ──
-      // Draws a single narrow pointed leaflet from base (bx,by) to tip (tx,ty)
-      function drawLeaflet(bx: number, by: number, tx: number, ty: number, color: string) {
-        const dx = tx - bx, dy = ty - by;
-        const len = Math.sqrt(dx * dx + dy * dy);
-        if (len < 2) return;
-        const nx = -dy / len, ny = dx / len; // left normal
-        const halfW = len * 0.09;
-        const mx = (bx + tx) / 2, my = (by + ty) / 2;
-        ctx.beginPath();
-        ctx.moveTo(bx, by);
-        ctx.quadraticCurveTo(mx + nx * halfW, my + ny * halfW, tx, ty);
-        ctx.quadraticCurveTo(mx - nx * halfW, my - ny * halfW, bx, by);
-        ctx.closePath();
-        ctx.fillStyle = color;
-        ctx.fill();
-      }
-
-      // Draws a palm frond: curved stem with paired leaflets along it.
-      // Leaflets that extend off canvas are automatically clipped.
-      function drawPalmFrond(
-        sx: number, sy: number,    // stem start (near corner)
-        cpx: number, cpy: number,  // bezier control point
-        ex: number, ey: number,    // stem end (into image)
-        stemColor: string,
-        leftColor: string, rightColor: string,
-        stemW: number,
-        maxLeafLen: number,
-        numPairs: number,
-        alpha: number
+      // Helper: draw a single tropical leaf using bezier curves
+      function drawTropicalLeaf(
+        cx: number, cy: number,
+        len: number, wid: number,
+        angle: number,
+        color: string,
+        alpha = 0.93
       ) {
         ctx.save();
         ctx.globalAlpha = alpha;
-
-        // Stem
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.quadraticCurveTo(cpx, cpy, ex, ey);
-        ctx.strokeStyle = stemColor;
-        ctx.lineWidth = stemW;
-        ctx.lineCap = "round";
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(-wid * 0.75, -len * 0.22, -wid, -len * 0.58, -wid * 0.25, -len);
+        ctx.bezierCurveTo(-wid * 0.08, -len * 1.04, wid * 0.08, -len * 1.04, wid * 0.25, -len);
+        ctx.bezierCurveTo(wid, -len * 0.58, wid * 0.75, -len * 0.22, 0, 0);
+        ctx.fillStyle = color;
+        ctx.fill();
+        // Center vein
+        ctx.beginPath();
+        ctx.moveTo(0, -8);
+        ctx.lineTo(0, -len + 10);
+        ctx.strokeStyle = "rgba(0,40,0,0.18)";
+        ctx.lineWidth = 5;
         ctx.stroke();
-
-        // Leaflet pairs at evenly-spaced t values along the bezier
-        for (let i = 1; i <= numPairs; i++) {
-          const t = i / (numPairs + 1);
-          // Point on quadratic bezier
-          const bx = (1-t)*(1-t)*sx + 2*(1-t)*t*cpx + t*t*ex;
-          const by = (1-t)*(1-t)*sy + 2*(1-t)*t*cpy + t*t*ey;
-          // Tangent direction
-          const tdx = 2*(1-t)*(cpx-sx) + 2*t*(ex-cpx);
-          const tdy = 2*(1-t)*(cpy-sy) + 2*t*(ey-cpy);
-          const tlen = Math.sqrt(tdx*tdx + tdy*tdy);
-          const nx = -tdy / tlen, ny = tdx / tlen; // left normal
-          // Leaf length: sinusoidal peak in the middle of the frond
-          const ll = maxLeafLen * (0.15 + 0.85 * Math.sin(t * Math.PI));
-
-          drawLeaflet(bx, by, bx + nx * ll, by + ny * ll, leftColor);
-          drawLeaflet(bx, by, bx - nx * ll, by - ny * ll, rightColor);
-        }
         ctx.restore();
       }
 
@@ -350,18 +294,19 @@ export default function ListStoryEditor() {
         ctx.globalAlpha = 1;
       }
 
-      // ── Palm fronds – top-left corner ──
-      // Frond 1: diagonal, going down-right
-      drawPalmFrond(0, 0, 80, 350, 210, 720, "#1B4332", "#2D6A4F", "#40916C", 22, 290, 5, 0.90);
-      // Frond 2: more horizontal, going right
-      drawPalmFrond(0, 50, 260, 130, 660, 290, "#2D6A4F", "#40916C", "#52B788", 18, 250, 5, 0.85);
-      // Frond 3: steeper, from top edge
-      drawPalmFrond(90, 0, 210, 210, 360, 600, "#40916C", "#52B788", "#74C69D", 15, 210, 4, 0.78);
+      // ── Tropical leaves – top-left corner ──
+      drawTropicalLeaf(20,  240, 320, 90, Math.PI * 0.08,  "#1B4332", 0.88);
+      drawTropicalLeaf(90,  200, 290, 78, Math.PI * 0.28,  "#2D6A4F", 0.90);
+      drawTropicalLeaf(180, 260, 260, 70, Math.PI * 0.48,  "#40916C", 0.88);
+      drawTropicalLeaf(55,  130, 230, 62, -Math.PI * 0.08, "#52B788", 0.82);
+      drawTropicalLeaf(130, 160, 200, 55,  Math.PI * 0.18, "#74C69D", 0.75);
 
-      // ── Palm fronds – bottom-right corner (mirrored) ──
-      drawPalmFrond(W, H, W-80, H-350, W-210, H-720, "#1B4332", "#2D6A4F", "#40916C", 22, 290, 5, 0.90);
-      drawPalmFrond(W, H-50, W-260, H-130, W-660, H-290, "#2D6A4F", "#40916C", "#52B788", 18, 250, 5, 0.85);
-      drawPalmFrond(W-90, H, W-210, H-210, W-360, H-600, "#40916C", "#52B788", "#74C69D", 15, 210, 4, 0.78);
+      // ── Tropical leaves – bottom-right corner ──
+      drawTropicalLeaf(W - 20,  H - 240, 320, 90, Math.PI + Math.PI * 0.08,  "#1B4332", 0.88);
+      drawTropicalLeaf(W - 90,  H - 200, 290, 78, Math.PI + Math.PI * 0.28,  "#2D6A4F", 0.90);
+      drawTropicalLeaf(W - 180, H - 260, 260, 70, Math.PI + Math.PI * 0.48,  "#40916C", 0.88);
+      drawTropicalLeaf(W - 55,  H - 130, 230, 62, Math.PI - Math.PI * 0.08,  "#52B788", 0.82);
+      drawTropicalLeaf(W - 130, H - 160, 200, 55, Math.PI + Math.PI * 0.18,  "#74C69D", 0.75);
 
       // ── Title "NEW LISTING!" with Cinzel ──
       const titleText = d.title.toUpperCase();
@@ -369,22 +314,29 @@ export default function ListStoryEditor() {
       const CINZEL = `Cinzel, ${SF}`;
 
       ctx.textAlign = "center";
+      // Measure title width to place emoji
       ctx.font = `bold 92px ${CINZEL}`;
       const titleMetricsW = ctx.measureText(titleText).width;
-      const titleCenterX = W / 2 - 50;
+      const titleCenterX = W / 2 - 50; // offset left to make room for emoji
 
+      // Drop shadow
       ctx.shadowColor = "rgba(0,0,0,0.25)";
       ctx.shadowBlur = 6;
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 3;
+
+      // Fill: off-white
       ctx.fillStyle = "#F2F2EE";
       ctx.fillText(titleText, titleCenterX, titleY);
 
+      // Stroke: thin gray outline (no shadow on stroke)
       ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
       ctx.strokeStyle = "#7A7A7A";
       ctx.lineWidth = 1.5;
       ctx.strokeText(titleText, titleCenterX, titleY);
 
+      // Sparkle emoji ✨ after title
+      ctx.shadowBlur = 0;
       ctx.font = "68px serif";
       ctx.fillStyle = "#f59e0b";
       ctx.fillText("✨", titleCenterX + titleMetricsW / 2 + 36, titleY - 4);
@@ -408,7 +360,6 @@ export default function ListStoryEditor() {
       }
 
       // ── Info card: white semi-transparent, rounded 20px ──
-      // Position kept exactly as before
       const cardX = 100, cardW = W - 200;
       const cardY = heroY + heroH + 70;
       const cardH = 860;
@@ -427,33 +378,31 @@ export default function ListStoryEditor() {
       ctx.textAlign = "center";
       ctx.fillText(d.ref, cardX + cardW / 2, cardY + 62);
 
-      // ── Price – black, serif, NO underline ──
+      // ── Price – black, serif, underlined ──
       const priceText = "Price: " + d.price;
       ctx.font = `700 74px ${SF}`;
       ctx.fillStyle = "#1A1A1A";
       ctx.textAlign = "center";
       ctx.fillText(priceText, cardX + cardW / 2, cardY + 150);
+      // Manual underline
+      const priceMeasure = ctx.measureText(priceText);
+      const priceLineX = cardX + cardW / 2 - priceMeasure.width / 2;
+      ctx.fillStyle = "#1A1A1A";
+      ctx.fillRect(priceLineX, cardY + 160, priceMeasure.width, 3);
 
       // ── Divider ──
       ctx.fillStyle = "rgba(180,180,180,0.60)";
       ctx.fillRect(cardX + 30, cardY + 185, cardW - 60, 1.5);
 
-      // ── Stats rows: icons with natural aspect ratio, text vertically centered ──
+      // ── Stats rows: larger icons, bigger text, more line height ──
       const svgIconMap: Record<string, HTMLImageElement | null> = {
         pin: positionImg, bed: bedImg, bath: showerImg, square: sizeImg, home: houseImg,
       };
 
-      // Draw icon preserving natural aspect ratio at a fixed height
       function drawIcon(cx: number, cy: number, type: string) {
         const img = svgIconMap[type];
-        if (!img) return;
-        const iconH = 82;
-        // Use naturalWidth/naturalHeight to preserve aspect ratio; fall back to 1:1
-        const ratio = (img.naturalWidth > 0 && img.naturalHeight > 0)
-          ? img.naturalWidth / img.naturalHeight
-          : 1;
-        const iconW = iconH * ratio;
-        ctx.drawImage(img, cx - iconW / 2, cy - iconH / 2, iconW, iconH);
+        const sz = 68; // ~28-30px at 1/3 scale preview
+        if (img) ctx.drawImage(img, cx - sz / 2, cy - sz / 2, sz, sz);
       }
 
       const statsData = [
@@ -464,28 +413,25 @@ export default function ListStoryEditor() {
         { label: d.type,     iconType: "home" },
       ];
 
-      // Use textBaseline "middle" so text center aligns with icon center
       ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
       let sy = cardY + 268;
       statsData.forEach(({ label, iconType }) => {
-        drawIcon(cardX + 62, sy, iconType);          // icon centered at sy
+        drawIcon(cardX + 58, sy - 8, iconType);
         ctx.font = `600 50px ${SS}`;
         ctx.fillStyle = "#1A1A1A";
-        ctx.fillText(label, cardX + 118, sy);        // text middle at sy
-        sy += 100;
+        ctx.fillText(label, cardX + 110, sy);
+        sy += 100; // 90-100px between rows
       });
-      ctx.textBaseline = "alphabetic"; // reset
 
-      // ── Polaroid (photo 2): positioned just below the divider ──
-      // polY set so the top of the frame is just below cardY+185 (the divider line)
+      // ── Polaroid (photo 2) – wider proportions, clear white border ──
       if (img2) {
         ctx.save();
         const frameW = 390, frameH = 470, pad = 14, bottomPad = 90;
-        const polX = cardX + cardW - 330, polY = cardY + 200;
+        const polX = cardX + cardW - 330, polY = cardY + 175;
         ctx.translate(polX, polY);
         ctx.rotate(8 * Math.PI / 180);
 
+        // Shadow behind polaroid
         ctx.shadowColor = "rgba(0,0,0,0.32)";
         ctx.shadowBlur = 32;
         ctx.shadowOffsetX = 4;
@@ -494,6 +440,7 @@ export default function ListStoryEditor() {
         ctx.fillRect(0, 0, frameW, frameH);
         ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
 
+        // Photo clipped inside the polaroid frame
         const pw = frameW - pad * 2, ph = frameH - pad - bottomPad;
         ctx.save();
         ctx.beginPath();
@@ -504,7 +451,8 @@ export default function ListStoryEditor() {
           img2,
           pad + (pw - img2.width * ps) / 2,
           pad + (ph - img2.height * ps) / 2,
-          img2.width * ps, img2.height * ps
+          img2.width * ps,
+          img2.height * ps
         );
         ctx.restore();
         ctx.restore();
@@ -542,165 +490,147 @@ export default function ListStoryEditor() {
         </p>
       </div>
 
-      {/*
-        ── Story Canvas ──
-        Outer div is 400×711px (wider than before).
-        Inner content is 360×640px scaled up via CSS transform to fill the outer shell.
-        This preserves all internal pixel values (padding, font sizes, etc.)
-        while making the visible preview card wider.
-      */}
+      {/* ── Story Canvas (1080x1920 ratio) ── */}
       <div
         id="story-canvas"
-        className="relative rounded-xl shadow-2xl border-[6px] border-slate-800"
-        style={{ width: "400px", height: "711px", overflow: "hidden" }}
+        className="relative w-[360px] h-[640px] bg-white rounded-xl shadow-2xl overflow-hidden border-[6px] border-slate-800"
       >
-        {/* Scaled inner shell – 360×640 scaled to 400×711 */}
-        <div style={{
-          width: "360px",
-          height: "640px",
-          transformOrigin: "top left",
-          transform: `scale(${400 / 360})`,
-          position: "absolute",
-          top: 0,
-          left: 0,
-        }}>
-          {/* Palm decorations */}
-          <PalmDecorTopLeft />
-          <PalmDecorBottomRight />
+        {/* Leaf decorations */}
+        <LeafDecorTopLeft />
+        <LeafDecorBottomRight />
 
-          {/* Background: blurred photo 2 */}
-          <div className="absolute inset-0 z-0">
-            {p2 ? (
-              <img
-                src={p2}
-                className="w-full h-full object-cover blur-[2px] scale-110 opacity-80"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-b from-sky-100 to-white" />
-            )}
+        {/* Background: blurred photo 2 */}
+        <div className="absolute inset-0 z-0">
+          {p2 ? (
+            <img
+              src={p2}
+              className="w-full h-full object-cover blur-[2px] scale-110 opacity-80"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-b from-sky-100 to-white" />
+          )}
+        </div>
+
+        {/* Content Layer */}
+        <div className="relative z-10 flex flex-col h-full">
+          {/* Header – Cinzel, off-white, letter-spaced */}
+          <div className="pt-9 pb-3 text-center">
+            <h1
+              className="flex items-center justify-center gap-1.5 drop-shadow-md"
+              style={{
+                fontFamily: "'Cinzel', Georgia, serif",
+                fontWeight: 700,
+                fontSize: "19px",
+                letterSpacing: "0.12em",
+                color: "#F2F2EE",
+                WebkitTextStroke: "0.4px #7A7A7A",
+                textTransform: "uppercase",
+              }}
+            >
+              <Editable value={d.title} onChange={set("title")} center />
+              <Sparkles className="text-amber-400 h-4 w-4 shrink-0" />
+            </h1>
           </div>
 
-          {/* Content layer */}
-          <div className="relative z-10 flex flex-col h-full">
-            {/* Header – Cinzel, off-white, letter-spaced */}
-            <div className="pt-9 pb-3 text-center">
-              <h1
-                className="flex items-center justify-center gap-1.5 drop-shadow-md"
-                style={{
-                  fontFamily: "'Cinzel', Georgia, serif",
-                  fontWeight: 700,
-                  fontSize: "19px",
-                  letterSpacing: "0.12em",
-                  color: "#F2F2EE",
-                  WebkitTextStroke: "0.4px #7A7A7A",
-                  textTransform: "uppercase",
-                }}
-              >
-                <Editable value={d.title} onChange={set("title")} center />
-                <Sparkles className="text-amber-400 h-4 w-4 shrink-0" />
-              </h1>
-            </div>
+          {/* Huvudbild (P1) */}
+          <div className="px-4">
+            <Photo
+              src={p1}
+              onLoad={setP1}
+              label="Huvudbild"
+              className="w-full aspect-[1.6/1] rounded-lg shadow-lg"
+            />
+          </div>
 
-            {/* Huvudbild (P1) */}
-            <div className="px-4">
-              <Photo
-                src={p1}
-                onLoad={setP1}
-                label="Huvudbild"
-                className="w-full aspect-[1.6/1] rounded-lg shadow-lg"
-              />
-            </div>
-
-            {/* Info Card – white semi-transparent, rounded-2xl */}
-            {/* Position kept exactly as before */}
-            <div className="px-10 mt-5 flex-1 pb-8">
-              <div
-                className="backdrop-blur-sm rounded-[20px] p-3 pt-[10px] pb-5 h-fit relative"
-                style={{
-                  background: "rgba(255,255,255,0.85)",
-                  boxShadow: "0 4px 18px rgba(0,0,0,0.13)",
-                }}
-              >
-                <div className="text-center mb-2 -mt-1">
-                  {/* Ref – small, light gray */}
-                  <div
-                    className="text-[10px] mb-1 tracking-tight"
-                    style={{ color: "#999999" }}
-                  >
-                    <Editable value={d.ref} onChange={set("ref")} />
-                  </div>
-                  {/* Price – black, serif, NO underline */}
-                  <div
-                    className="font-bold tracking-tight"
-                    style={{
-                      fontFamily: SF,
-                      fontSize: "22px",
-                      color: "#1A1A1A",
-                    }}
-                  >
-                    Price: <Editable value={d.price} onChange={set("price")} />
-                  </div>
-                  <div className="h-[0.8px] w-full bg-gray-300/70 my-1.5" />
-                </div>
-
-                {/* Stats – icons 28px, text 13px, vertically centered */}
-                <div className="space-y-[10px] pb-2">
-                  {[
-                    { src: "/position-icon.svg", val: d.location, k: "location" as const },
-                    { src: "/bed-icon.svg",      val: d.beds,     k: "beds" as const },
-                    { src: "/shower-icon.svg",   val: d.baths,    k: "baths" as const },
-                    { src: "/size-icon.svg",     val: d.area,     k: "area" as const },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <img
-                        src={item.src}
-                        height={28}
-                        style={{ objectFit: "contain", filter: "brightness(0) saturate(100%) invert(16%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(25%)" }}
-                        alt=""
-                        className="shrink-0"
-                      />
-                      <div
-                        className="font-semibold tracking-tight leading-none"
-                        style={{ fontSize: "13px", color: "#1A1A1A" }}
-                      >
-                        <Editable value={item.val} onChange={set(item.k)} />
-                      </div>
-                    </div>
-                  ))}
-                  <div className="flex items-center gap-2">
-                    <span style={{ color: "#3A3A3A" }} className="shrink-0 flex">
-                      <HouseIcon size={28} />
-                    </span>
-                    <div
-                      className="font-semibold tracking-tight leading-none"
-                      style={{ fontSize: "13px", color: "#1A1A1A" }}
-                    >
-                      <Editable value={d.type} onChange={set("type")} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Polaroid (P2) – positioned below the divider line */}
+          {/* Info Card – white semi-transparent, rounded-2xl */}
+          <div className="px-10 mt-5 flex-1 pb-8">
+            <div
+              className="backdrop-blur-sm rounded-[20px] p-3 pt-[10px] pb-5 h-fit relative"
+              style={{
+                background: "rgba(255,255,255,0.85)",
+                boxShadow: "0 4px 18px rgba(0,0,0,0.13)",
+              }}
+            >
+              <div className="text-center mb-2 -mt-1">
+                {/* Ref – small, light gray */}
                 <div
-                  className="absolute bg-white z-30"
+                  className="text-[10px] mb-1 tracking-tight"
+                  style={{ color: "#999999" }}
+                >
+                  <Editable value={d.ref} onChange={set("ref")} />
+                </div>
+                {/* Price – black, serif, underline */}
+                <div
+                  className="font-bold tracking-tight"
                   style={{
-                    right: "-28px",
-                    top: "62%",
-                    transform: "translateY(-50%) rotate(8deg)",
-                    padding: "5px",
-                    paddingBottom: "26px",
-                    width: "140px",
-                    boxShadow: "2px 6px 20px rgba(0,0,0,0.32)",
-                    border: "2.5px solid #fff",
+                    fontFamily: SF,
+                    fontSize: "22px",
+                    color: "#1A1A1A",
+                    textDecoration: "underline",
+                    textUnderlineOffset: "3px",
                   }}
                 >
-                  <Photo
-                    src={p2}
-                    onLoad={setP2}
-                    label="Poolbild"
-                    className="w-full h-[112px]"
-                  />
+                  Price: <Editable value={d.price} onChange={set("price")} />
                 </div>
+                <div className="h-[0.8px] w-full bg-gray-300/70 my-1.5" />
+              </div>
+
+              {/* Stats – larger icons, more spacing */}
+              <div className="space-y-[10px] pb-2">
+                {[
+                  { src: "/position-icon.svg", val: d.location, k: "location" as const },
+                  { src: "/bed-icon.svg",      val: d.beds,     k: "beds" as const },
+                  { src: "/shower-icon.svg",   val: d.baths,    k: "baths" as const },
+                  { src: "/size-icon.svg",     val: d.area,     k: "area" as const },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <img
+                      src={item.src}
+                      width={28}
+                      height={28}
+                      style={{ objectFit: "contain", filter: "brightness(0) saturate(100%) invert(16%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(25%)" }}
+                      alt=""
+                      className="shrink-0"
+                    />
+                    <div
+                      className="font-semibold tracking-tight"
+                      style={{ fontSize: "13px", color: "#1A1A1A" }}
+                    >
+                      <Editable value={item.val} onChange={set(item.k)} />
+                    </div>
+                  </div>
+                ))}
+                <div className="flex items-center gap-2">
+                  <span style={{ color: "#3A3A3A" }} className="shrink-0 flex"><HouseIcon size={28} /></span>
+                  <div
+                    className="font-semibold tracking-tight"
+                    style={{ fontSize: "13px", color: "#1A1A1A" }}
+                  >
+                    <Editable value={d.type} onChange={set("type")} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Polaroid (P2) – wider, clearer border */}
+              <div
+                className="absolute bg-white shadow-2xl transform rotate-[8deg] z-30"
+                style={{
+                  right: "-28px",
+                  top: "44%",
+                  transform: "translateY(-50%) rotate(8deg)",
+                  padding: "5px",
+                  paddingBottom: "26px",
+                  width: "140px",
+                  boxShadow: "2px 6px 20px rgba(0,0,0,0.32)",
+                  border: "2.5px solid #fff",
+                }}
+              >
+                <Photo
+                  src={p2}
+                  onLoad={setP2}
+                  label="Poolbild"
+                  className="w-full h-[112px]"
+                />
               </div>
             </div>
           </div>
