@@ -601,7 +601,7 @@ export default function ListStoryEditor() {
                   </div>
                 ))}
                 <div className="flex items-center gap-2">
-                  <HouseIcon size={28} className="shrink-0" style={{ color: "#3A3A3A" } as React.CSSProperties} />
+                  <span style={{ color: "#3A3A3A" }} className="shrink-0 flex"><HouseIcon size={28} /></span>
                   <div
                     className="font-semibold tracking-tight"
                     style={{ fontSize: "13px", color: "#1A1A1A" }}
