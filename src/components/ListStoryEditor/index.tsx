@@ -166,10 +166,11 @@ export default function ListStoryEditor() {
           img.src = src;
         });
 
-      const [img1, img2, houseImg, bedImg, showerImg, positionImg, sizeImg] = await Promise.all([
+      const [img1, img2, houseImg, bedImg, showerImg, positionImg, sizeImg, palmImg] = await Promise.all([
         loadImg(p1), loadImg(p2),
         loadImg('/house-icon.svg'), loadImg('/bed-icon.svg'), loadImg('/shower-icon.svg'),
         loadImg('/position-icon.svg'), loadImg('/size-icon.svg'),
+        loadImg('/palm-overlay.png'),
       ]);
 
       function roundRect(x: number, y: number, w: number, h: number, r: number) {
@@ -302,6 +303,20 @@ export default function ListStoryEditor() {
         ctx.restore();
       }
 
+      // Palm overlay (top-left + bottom-right mirrored)
+      if (palmImg) {
+        const palmW = Math.round(W * 0.65);
+        const palmH = Math.round(palmW * (palmImg.height / palmImg.width));
+        // Top-left
+        ctx.drawImage(palmImg, 0, 0, palmW, palmH);
+        // Bottom-right (mirrored 180deg)
+        ctx.save();
+        ctx.translate(W, H);
+        ctx.rotate(Math.PI);
+        ctx.drawImage(palmImg, 0, 0, palmW, palmH);
+        ctx.restore();
+      }
+
       // Download
       const imageData = canvas.toDataURL("image/png");
       const res = await fetch("/api/download", {
@@ -350,6 +365,19 @@ export default function ListStoryEditor() {
             <div className="w-full h-full bg-gradient-to-b from-sky-100 to-white" />
           )}
         </div>
+
+        {/* Palm overlay top-left */}
+        <img
+          src="/palm-overlay.png"
+          className="absolute top-0 left-0 w-[65%] pointer-events-none z-20"
+          alt=""
+        />
+        {/* Palm overlay bottom-right (rotated 180deg) */}
+        <img
+          src="/palm-overlay.png"
+          className="absolute bottom-0 right-0 w-[65%] pointer-events-none z-20 rotate-180"
+          alt=""
+        />
 
         {/* Content Layer */}
         <div className="relative z-10 flex flex-col h-full">
