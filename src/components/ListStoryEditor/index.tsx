@@ -329,10 +329,10 @@ export default function ListStoryEditor() {
 
       // ── Hero image (drawn after the border so it overlaps on top) ──
       ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.35)";
-      ctx.shadowBlur = 22;
-      ctx.shadowOffsetX = 6;
-      ctx.shadowOffsetY = 6;
+      ctx.shadowColor = "rgba(0,0,0,0.10)";
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 2;
       ctx.fillStyle = "#000";
       roundRect(heroX, heroY, heroW, heroH, 24);
       ctx.fill();

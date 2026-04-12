@@ -1,13 +1,45 @@
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { Download, Camera } from "lucide-react";
+import { GiHouse } from "react-icons/gi";
+import { LuBath } from "react-icons/lu";
 
-// ── Luxury palette (mirrors Lyxery.md spec) ─────────────────────────
-const GOLD_LIGHT = "#F1D27A";
-const GOLD       = "#D4AF37";
-const GOLD_DARK  = "#A8892A";
-const GOLD_TEXT  = "#E5C76B";
+// Serialize a react-icons component to a data URL so it can be used both as
+// a DOM <img> source and drawn on a Canvas via drawImage. react-icons does
+// not emit an xmlns attribute by default, so we inject one.
+function iconToDataUrl(node: React.ReactElement): string {
+  let svg = renderToStaticMarkup(node);
+  if (!svg.includes("xmlns=")) {
+    svg = svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+const HOUSE_ICON_URL = iconToDataUrl(
+  <GiHouse size={256} color="#ffffff" />
+);
+
+const BATH_ICON_URL = iconToDataUrl(
+  <LuBath size={256} color="#ffffff" />
+);
+
+// ── Luxury palette — champagne gold (warmer, lighter) ──────────────
+const GOLD_LIGHT = "#F0D48A";
+const GOLD       = "#D9B968";
+const GOLD_DARK  = "#B9913F";
+const GOLD_TEXT  = "#D6B15C";
+
+// Dedicated shades for the price text (vertical gradient: top → bottom)
+const PRICE_GOLD_TOP    = "#F3D98F";
+const PRICE_GOLD_MID    = "#D9B968";
+const PRICE_GOLD_BOTTOM = "#B78735";
+
+// Dedicated shades for the inner border (softer, less orange than main gold)
+const BORDER_GOLD_LIGHT = "#E8CB7A";
+const BORDER_GOLD       = "#D5B15A";
+const BORDER_GOLD_DARK  = "#AF8738";
 
 const SS = "'Montserrat','Helvetica Neue',Helvetica,Arial,sans-serif";
 const SF = "Georgia,'Times New Roman',serif";
@@ -68,34 +100,61 @@ function Editable({
 function Photo({
   src,
   onLoad,
+  onLoadSecondary,
   label,
   className,
   placeholderAlign = "center",
 }: {
   src: string | null;
   onLoad: (src: string) => void;
+  /** Optional — if provided, the file input allows multi-select and the
+   *  second chosen file is routed here (used to pick P1 + P2 in one tap). */
+  onLoadSecondary?: (src: string) => void;
   label: string;
   className?: string;
   /** where the "add image" placeholder sits inside the container */
   placeholderAlign?: "start" | "center" | "end";
 }) {
   const ref = useRef<HTMLInputElement>(null);
-  const handle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const r = new FileReader();
-    r.onload = (ev) => {
-      if (ev.target?.result) onLoad(ev.target.result as string);
-    };
-    r.readAsDataURL(f);
+
+  const readAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = (ev) => {
+        if (ev.target?.result) resolve(ev.target.result as string);
+        else reject(new Error("empty result"));
+      };
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
+
+  const handle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    try {
+      const [first, second] = [files[0], files[1]];
+      if (first) onLoad(await readAsDataUrl(first));
+      if (second && onLoadSecondary) {
+        onLoadSecondary(await readAsDataUrl(second));
+      }
+    } catch (err) {
+      console.warn("Photo upload failed:", err);
+    } finally {
+      // Reset so selecting the same file again still triggers onChange
+      if (ref.current) ref.current.value = "";
+    }
   };
 
+  // In a flex-col container, justify-* controls VERTICAL alignment and
+  // items-* controls HORIZONTAL. We want the upload badge centred horizontally
+  // and pushed to the top (for P1) or bottom (for P2) so it never hides behind
+  // the info card that covers the middle of the canvas.
   const alignClass =
     placeholderAlign === "start"
-      ? "items-start pt-3"
+      ? "justify-start pt-[90px]"
       : placeholderAlign === "end"
-      ? "items-end pb-3"
-      : "items-center";
+      ? "justify-end pb-[90px]"
+      : "justify-center";
 
   return (
     <div
@@ -110,30 +169,25 @@ function Photo({
             <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-black/60 border border-yellow-300/60">
               <Camera size={12} className="text-yellow-200" />
               <span className="text-[9px] font-semibold text-yellow-200 uppercase tracking-wider">
-                Byt bild
+                Change image
               </span>
             </div>
           </div>
         </>
       ) : (
         <div
-          className={`absolute inset-0 flex flex-col ${alignClass} justify-center gap-1.5 bg-gradient-to-br from-slate-800/90 to-slate-900/90 text-yellow-200`}
+          className={`absolute inset-0 flex flex-col items-center ${alignClass} gap-1.5 bg-gradient-to-br from-slate-800/90 to-slate-900/90 text-yellow-200`}
         >
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/50 border border-yellow-300/70 animate-pulse">
-            <Camera size={14} />
-            <span className="text-[10px] font-bold uppercase tracking-wider">
-              {label}
-            </span>
+          <div className="flex items-center justify-center p-2 rounded-full bg-black/50 border border-yellow-300/70">
+            <Camera size={16} />
           </div>
-          <span className="text-[8px] text-yellow-200/70 uppercase tracking-wider">
-            Klicka för att ladda upp
-          </span>
         </div>
       )}
       <input
         ref={ref}
         type="file"
         accept="image/*"
+        multiple={!!onLoadSecondary}
         className="hidden"
         onChange={handle}
       />
@@ -144,7 +198,7 @@ function Photo({
 // ── Main Component ──────────────────────────────────────────
 export default function Lyxery() {
   const [d, setD] = useState({
-    brand: "LUXURY_ESTATES_SPAIN",
+    brand: "CollectedHomes",
     title: "FOR SALE",
     ref: "Ref: 58272",
     price: "599.000€",
@@ -156,15 +210,13 @@ export default function Lyxery() {
   const [p1, setP1] = useState<string | null>(null);
   const [p2, setP2] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
-  // TEMP PREVIEW — remove when done editing
-  const [preview, setPreview] = useState<string | null>(null);
 
-  // Load Cormorant Garamond + Montserrat fonts for UI preview
+  // Load Cormorant Garamond + Montserrat + Raleway fonts for UI preview
   useEffect(() => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href =
-      "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500&display=swap";
+      "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500&family=Raleway:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap";
     document.head.appendChild(link);
     return () => { if (link.parentNode) link.parentNode.removeChild(link); };
   }, []);
@@ -197,10 +249,18 @@ export default function Lyxery() {
           loadGoogleFont("Cormorant Garamond", "700"),
           loadGoogleFont("Montserrat", "300"),
           loadGoogleFont("Montserrat", "400"),
+          loadGoogleFont("Raleway", "500"),
+          loadGoogleFont("Raleway", "600"),
+          loadGoogleFont("Inter", "700"),
+          loadGoogleFont("Inter", "800"),
         ]);
         await document.fonts.load("700 99px 'Cormorant Garamond'");
         await document.fonts.load("300 48px 'Montserrat'");
         await document.fonts.load("400 48px 'Montserrat'");
+        await document.fonts.load("500 120px 'Raleway'");
+        await document.fonts.load("600 120px 'Raleway'");
+        await document.fonts.load("700 120px 'Inter'");
+        await document.fonts.load("800 120px 'Inter'");
         await document.fonts.ready;
       } catch (e) {
         console.warn("Font load failed, using serif fallback:", e);
@@ -212,7 +272,7 @@ export default function Lyxery() {
       const ctx = canvas.getContext("2d")!;
 
       ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, 30);
+      ctx.roundRect(0, 0, W, H, 0);
       ctx.clip();
 
       const loadImg = (src: string | null): Promise<HTMLImageElement | null> =>
@@ -226,7 +286,7 @@ export default function Lyxery() {
 
       const [img1, img2, houseImg, bedImg, showerImg, positionImg] = await Promise.all([
         loadImg(p1), loadImg(p2),
-        loadImg("/house-icon.svg"), loadImg("/bed-icon.svg"), loadImg("/shower-icon.svg"),
+        loadImg(HOUSE_ICON_URL), loadImg("/bed-icon.svg"), loadImg(BATH_ICON_URL),
         loadImg("/position-icon.svg"),
       ]);
 
@@ -286,6 +346,23 @@ export default function Lyxery() {
         ctx.fillRect(0, halfH, W, halfH);
       }
 
+      // ── Clean snapshot taken BEFORE warm filter.
+      // Used later by the card's frosted glass so the blurred background
+      // INSIDE the card has no warm tint — only the outer P1/P2 areas do. ──
+      const cleanSnapshot = document.createElement("canvas");
+      cleanSnapshot.width = W;
+      cleanSnapshot.height = H;
+      cleanSnapshot.getContext("2d")!.drawImage(canvas, 0, 0);
+
+      // ── Warm tone overlay — thin warm filter across both images ──
+      // Uses "multiply" so it tints highlights + shadows naturally instead of
+      // flattening them like a plain alpha fill would.
+      ctx.save();
+      ctx.globalCompositeOperation = "multiply";
+      ctx.fillStyle = "rgba(255, 205, 145, 0.18)";
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+
       // Subtle top darkening for brand text legibility
       const topGrad = ctx.createLinearGradient(0, 0, 0, 160);
       topGrad.addColorStop(0, "rgba(0,0,0,0.45)");
@@ -303,10 +380,10 @@ export default function Lyxery() {
       ctx.shadowBlur = 0;
 
       // ── Info card (glass, gold border) centered on midpoint ──
-      const cardW = 880;
-      const cardH = 840;
-      const cardX = (W - cardW) / 2;  // 100
-      const cardY = (H - cardH) / 2;  // 540
+      const cardW = 820;
+      const cardH = 750;
+      const cardX = (W - cardW) / 2;  // 122
+      const cardY = (H - cardH) / 2;  // 564
 
       // Outer depth shadow — filled with a transparent rect that only casts shadow
       ctx.save();
@@ -319,25 +396,23 @@ export default function Lyxery() {
       ctx.restore();
 
       // ── Frosted glass effect ──
-      // Canvas has no native backdrop-filter, so we snapshot everything drawn
-      // so far (P1/P2 + gradients + brand), blur it, and paint it inside the
-      // card area. Then we layer a white tint + top shine on top.
+      // We use the CLEAN snapshot (captured before the warm filter) so the
+      // blurred background inside the card stays neutral — no warm tint here.
       {
-        const snapshot = document.createElement("canvas");
-        snapshot.width = W;
-        snapshot.height = H;
-        snapshot.getContext("2d")!.drawImage(canvas, 0, 0);
-
         ctx.save();
         roundRect(cardX, cardY, cardW, cardH, 30);
         ctx.clip();
 
-        // 1. Blurred background — just the blur, no colour tint
-        ctx.filter = "blur(10px)";
-        ctx.drawImage(snapshot, 0, 0);
+        // 1. Suddig bakgrund — matchar CSS backdrop-filter: blur(18px)
+        ctx.filter = "blur(18px)";
+        ctx.drawImage(cleanSnapshot, 0, 0);
         ctx.filter = "none";
 
-        // 4. Top glass shine
+        // 2. Bas-slöja ovanpå den blurrade bakgrunden
+        ctx.fillStyle = "rgba(103, 103, 103, 0.42)";
+        ctx.fillRect(cardX, cardY, cardW, cardH);
+
+        // 3. Top glass shine — ljusare topp som fadar ut mot botten
         const shineGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
         shineGrad.addColorStop(0, "rgba(255,255,255,0.22)");
         shineGrad.addColorStop(0.22, "rgba(255,255,255,0.08)");
@@ -346,7 +421,7 @@ export default function Lyxery() {
         ctx.fillStyle = shineGrad;
         ctx.fillRect(cardX, cardY, cardW, cardH);
 
-        // 5. Very subtle inner glow
+        // 4. Very subtle inner glow
         ctx.shadowColor = "rgba(255, 240, 210, 0.18)";
         ctx.shadowBlur = 30;
         ctx.fillStyle = "rgba(255,255,255,0.02)";
@@ -354,7 +429,7 @@ export default function Lyxery() {
         ctx.shadowColor = "transparent";
         ctx.shadowBlur = 0;
 
-        // 6. White outer outline
+        // 5. White outer outline
         ctx.strokeStyle = "rgba(255,255,255,0.22)";
         ctx.lineWidth = 2;
         roundRect(cardX, cardY, cardW, cardH, 30);
@@ -363,7 +438,7 @@ export default function Lyxery() {
         ctx.restore();
       }
 
-      // ── Inner content border (gold gradient, matches the price) ──
+      // ── Inner content border (softer gold, less orange than main palette) ──
       const innerInset = 50;
       ctx.save();
       const innerBorderGrad = ctx.createLinearGradient(
@@ -372,11 +447,11 @@ export default function Lyxery() {
         cardX + cardW - innerInset,
         cardY + cardH - innerInset
       );
-      innerBorderGrad.addColorStop(0, GOLD_LIGHT);
-      innerBorderGrad.addColorStop(0.5, GOLD_TEXT);
-      innerBorderGrad.addColorStop(1, GOLD_DARK);
+      innerBorderGrad.addColorStop(0, BORDER_GOLD_LIGHT);
+      innerBorderGrad.addColorStop(0.5, BORDER_GOLD);
+      innerBorderGrad.addColorStop(1, BORDER_GOLD_DARK);
       ctx.strokeStyle = innerBorderGrad;
-      ctx.lineWidth = 6;
+      ctx.lineWidth = 7;
       roundRect(
         cardX + innerInset,
         cardY + innerInset,
@@ -389,75 +464,115 @@ export default function Lyxery() {
 
       // ── FOR SALE title ──
       const TITLE_FONT = `'Cormorant Garamond', ${SF}`;
+      const FOR_SALE_FONT = `'Raleway', ${SS}`;
+      const PRICE_FONT = `'Inter', ${SS}`;
       const titleText = d.title.toUpperCase();
-      const titleY = cardY + 250;
-      ctx.font = `700 118px ${TITLE_FONT}`;
+      const titleY = cardY + 200;
+      ctx.font = `400 110px ${FOR_SALE_FONT}`;
+
+
       ctx.textAlign = "center";
       ctx.fillStyle = "#ffffff";
       ctx.shadowColor = "rgba(0,0,0,0.45)";
-      ctx.shadowBlur = 14;
-      ctx.shadowOffsetY = 6;
+      ctx.shadowBlur = 24;
+      ctx.shadowOffsetY = 1;
       ctx.fillText(titleText, W / 2, titleY);
       ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
 
       // ── Ref ──
-      ctx.font = `400 32px ${SS}`;
+      ctx.font = `400 36px ${SS}`;
       ctx.fillStyle = "rgba(255,255,255,0.85)";
-      ctx.fillText(d.ref, W / 2, titleY + 48);
+      ctx.fillText(d.ref, W / 2, titleY + 64);
 
-      // ── Price – gold gradient text ──
+      // ── Price – vertical gold gradient text (top → bottom) ──
       const priceText = d.price;
       ctx.save();
-      ctx.translate(W / 2, titleY + 170);
-      ctx.font = `700 118px ${TITLE_FONT}`;
-      const priceMetrics = ctx.measureText(priceText);
-      const priceW = priceMetrics.width;
-      const priceGrad = ctx.createLinearGradient(-priceW / 2, 0, priceW / 2, 0);
-      priceGrad.addColorStop(0, GOLD_LIGHT);
-      priceGrad.addColorStop(0.5, GOLD_TEXT);
-      priceGrad.addColorStop(1, GOLD_DARK);
+      ctx.translate(W / 2, titleY + 185);
+      ctx.font = `700 95px ${PRICE_FONT}`;
+      // Vertical gradient across the glyph height (approx -60 to +20 local)
+      const priceGrad = ctx.createLinearGradient(10, -100, 0, 10);
+      priceGrad.addColorStop(0,    PRICE_GOLD_TOP);
+      priceGrad.addColorStop(0.45, PRICE_GOLD_MID);
+      priceGrad.addColorStop(1,    PRICE_GOLD_BOTTOM);
       ctx.shadowColor = "rgba(0,0,0,0.5)";
-      ctx.shadowBlur = 14;
-      ctx.shadowOffsetY = 5;
+      ctx.shadowBlur = 52;
+      ctx.shadowOffsetY = 1;
       ctx.fillStyle = priceGrad;
       ctx.fillText(priceText, 0, 0);
       ctx.restore();
 
       // ── Stats 2x2 grid ──
-      const dividerY = titleY + 220; // anchor Y for the stats rows (divider removed)
+      const dividerY = titleY + 190; // anchor Y for the stats rows (divider removed)
       const svgIconMap: Record<string, HTMLImageElement | null> = {
         bed: bedImg, bath: showerImg, home: houseImg, pin: positionImg,
       };
-      const ICON_SIZE = 72;
+      // Base size if a specific icon isn't listed in ICON_SIZES
+      const ICON_SIZE_DEFAULT = 72;
+
+      // Per-icon height in px (canvas coords). Width is auto from aspect ratio.
+      const ICON_SIZES: Record<string, number> = {
+        bed:  110,
+        bath: 92,
+        home: 82,
+        pin:  92,
+      };
+
+      // Per-icon bold (dilation) — 0 = normal, 1–3 = progressively thicker.
+      // Tweak individually if some SVGs look too thin next to others.
+      const ICON_BOLD: Record<string, number> = {
+        bed:  0.5,
+        bath: 0,
+        home: 0,
+        pin:  0.5,
+      };
 
       function drawIcon(cx: number, cy: number, type: string) {
         const img = svgIconMap[type];
         if (!img || !img.naturalWidth) return;
         const aspectRatio = img.naturalWidth / img.naturalHeight;
-        const iconH = ICON_SIZE;
+        const iconH = ICON_SIZES[type] ?? ICON_SIZE_DEFAULT;
         const iconW = iconH * aspectRatio;
+        const bold = ICON_BOLD[type] ?? 0;
 
-        const pad = 4;
+        const pad = 4 + bold * 2;
         const off = document.createElement("canvas");
         off.width  = Math.ceil(iconW + pad * 2);
         off.height = Math.ceil(iconH + pad * 2);
         const octx = off.getContext("2d")!;
-        octx.drawImage(img, pad, pad, iconW, iconH);
+
+        // Draw the SVG — optionally multiple times with offsets to dilate
+        if (bold > 0) {
+          for (let dx = -bold; dx <= bold; dx++) {
+            for (let dy = -bold; dy <= bold; dy++) {
+              octx.drawImage(img, pad + dx, pad + dy, iconW, iconH);
+            }
+          }
+        } else {
+          octx.drawImage(img, pad, pad, iconW, iconH);
+        }
+
         octx.globalCompositeOperation = "source-in";
-        octx.fillStyle = GOLD;
+
+        // Gold gradient fill — exact match to the price text (vertical top → bottom)
+        const iconGrad = octx.createLinearGradient(20, -40, 100, off.height);
+        iconGrad.addColorStop(0,    PRICE_GOLD_TOP);
+        iconGrad.addColorStop(0.45, PRICE_GOLD_MID);
+        iconGrad.addColorStop(1,    PRICE_GOLD_BOTTOM);
+        octx.fillStyle = iconGrad;
         octx.fillRect(0, 0, off.width, off.height);
+
         ctx.drawImage(off, cx - off.width / 2, cy - off.height / 2);
       }
 
       // Balanced 2x2 grid: split card usable area into two even columns
-      const gridPad   = 120;                       // horizontal padding inside card
+      const gridPad   = 190;                       // horizontal padding inside card
       const gridLeftX  = cardX + gridPad;          // left column icon X (icon center)
-      const gridRightX = cardX + cardW / 2 + 70;   // right column icon X
+      const gridRightX = cardX + cardW / 2 + 50;   // right column icon X
       const row1Y      = dividerY + 100;
-      const row2Y      = dividerY + 200;
-      const labelGap   = 55;                        // distance from icon center to text start
+      const row2Y      = dividerY + 205;
+      const labelGap   = 58;                        // distance from icon center to text start
 
-      ctx.font = `400 52px ${SS}`;
+      ctx.font = `400 38px ${SS}`;
       ctx.fillStyle = "#ffffff";
       ctx.textAlign = "left";
 
@@ -479,16 +594,6 @@ export default function Lyxery() {
       return null;
     }
   }, [d, p1, p2]);
-
-  // TEMP PREVIEW — debounced live re-render of the real canvas
-  useEffect(() => {
-    let cancelled = false;
-    const t = setTimeout(async () => {
-      const url = await renderCanvas();
-      if (!cancelled && url) setPreview(url);
-    }, 300);
-    return () => { cancelled = true; clearTimeout(t); };
-  }, [renderCanvas]);
 
   const downloadStory = useCallback(async () => {
     setDownloading(true);
@@ -514,9 +619,10 @@ export default function Lyxery() {
     }
   }, [renderCanvas, d.ref]);
 
-  // Gold gradient text for CSS preview
+  // Gold gradient text for CSS preview — vertical (top → bottom) to match
+  // the canvas price rendering.
   const goldGradientText: React.CSSProperties = {
-    background: `linear-gradient(145deg, ${GOLD_LIGHT}, ${GOLD_TEXT}, ${GOLD_DARK})`,
+    backgroundImage: `linear-gradient(180deg, ${PRICE_GOLD_TOP} 0%, ${PRICE_GOLD_MID} 45%, ${PRICE_GOLD_BOTTOM} 100%)`,
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     backgroundClip: "text",
@@ -534,20 +640,18 @@ export default function Lyxery() {
         </p>
       </div>
 
-      {/* TEMP PREVIEW — side-by-side container, remove when done */}
-      <div className="flex gap-6 items-start">
-
       {/* ── Story Canvas (1080x1920 ratio → 360x640 preview) ── */}
       <div
         id="story-canvas"
-        className="relative w-[360px] h-[640px] bg-[#0b1220] rounded-xl shadow-2xl overflow-hidden border-[6px] border-slate-800"
+        className="relative w-[360px] h-[640px] bg-[#0b1220] shadow-2xl overflow-hidden border-[6px] border-slate-800"
       >
         {/* P1 — top half background */}
         <div className="absolute inset-x-0 top-0 h-1/2 z-0">
           <Photo
             src={p1}
             onLoad={setP1}
-            label="+ Lägg till bild 1"
+            onLoadSecondary={setP2}
+            label="+ Add both images"
             className="w-full h-full"
             placeholderAlign="start"
           />
@@ -558,7 +662,7 @@ export default function Lyxery() {
           <Photo
             src={p2}
             onLoad={setP2}
-            label="+ Lägg till bild 2"
+            label="+ Add bottom image"
             className="w-full h-full"
             placeholderAlign="end"
           />
@@ -584,36 +688,39 @@ export default function Lyxery() {
           <Editable value={d.brand} onChange={set("brand")} />
         </div>
 
-        {/* Info card – centered, overlapping midpoint */}
+        {/* Info card – centered, overlapping midpoint.
+            Dimensions scaled from canvas (1080x1920 → 360x640 = 1/3):
+            canvas cardW 880 / cardH 840 → CSS 294/280, inset 33/180. */}
         <div
-          className="absolute left-[16px] right-[16px] top-[125px] bottom-[125px] z-10 rounded-[20px] overflow-hidden"
+          className="absolute left-[41px] right-[41px] top-[188px] bottom-[188px] z-10 rounded-[10px] overflow-hidden"
           style={{
             background: "rgba(255,255,255,0.22)",
             backdropFilter: "blur(18px)",
             WebkitBackdropFilter: "blur(18px)",
             boxShadow:
-              "0 10px 30px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.25)",
+              "0 3px 10px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.22)",
           }}
         >
           {/* Top shine highlight */}
           <div
-            className="absolute inset-x-0 top-0 h-[40%] rounded-t-[20px] pointer-events-none"
+            className="absolute inset-x-0 top-0 h-[40%] rounded-t-[10px] pointer-events-none"
             style={{
               background:
                 "linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.04) 45%, rgba(255,255,255,0) 100%)",
             }}
           />
 
-          {/* Inner content border — gold gradient via mask trick */}
+          {/* Inner content border — gold gradient via mask trick.
+              Scaled from canvas innerInset 50 / lineWidth 6 → CSS 17 / 2. */}
           <div
-            className="absolute rounded-[14px] pointer-events-none"
+            className="absolute rounded-[6px] pointer-events-none"
             style={{
-              top: 14,
-              left: 14,
-              right: 14,
-              bottom: 14,
-              padding: 3,
-              background: `linear-gradient(145deg, ${GOLD_LIGHT}, ${GOLD_TEXT}, ${GOLD_DARK})`,
+              top: 17,
+              left: 17,
+              right: 17,
+              bottom: 17,
+              padding: 2,
+              background: `linear-gradient(145deg, ${BORDER_GOLD_LIGHT}, ${BORDER_GOLD}, ${BORDER_GOLD_DARK})`,
               WebkitMask:
                 "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
               WebkitMaskComposite: "xor",
@@ -621,13 +728,16 @@ export default function Lyxery() {
             }}
           />
 
-          <div className="relative h-full flex flex-col items-center justify-center px-6 py-5 text-center">
+          {/* Content uses top-anchored flow (not justify-center) so elements
+              land at the same relative positions as the canvas output. */}
+          <div className="relative h-full" style={{ paddingTop: 46 }}>
             {/* FOR SALE */}
             <div
+              className="text-center"
               style={{
-                fontFamily: "'Cormorant Garamond', Georgia, serif",
-                fontWeight: 700,
-                fontSize: "40px",
+                fontFamily: "'Raleway', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                fontWeight: 400,
+                fontSize: "38px",
                 lineHeight: 1,
                 color: "#ffffff",
                 textShadow: "0 2px 10px rgba(0,0,0,0.45)",
@@ -639,55 +749,72 @@ export default function Lyxery() {
 
             {/* Ref */}
             <div
-              className="mt-1"
-              style={{
-                fontSize: 11,
-                color: "rgba(255,255,255,0.85)",
-              }}
+              className="text-center"
+              style={{ marginTop: 6, fontSize: 11, color: "rgba(255,255,255,0.85)" }}
             >
               <Editable value={d.ref} onChange={set("ref")} />
             </div>
 
-            {/* Price – gold gradient */}
+            {/* Price – vertical gold gradient */}
             <div
-              className="mt-3"
+              className="text-center"
               style={{
-                fontFamily: "'Cormorant Garamond', Georgia, serif",
+                marginTop: 12,
+                fontFamily: "'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif",
                 fontWeight: 700,
-                fontSize: "40px",
+                fontSize: "34px",
                 lineHeight: 1,
                 textShadow: "0 2px 10px rgba(0,0,0,0.5)",
-                ...goldGradientText,
               }}
             >
-              <Editable value={d.price} onChange={set("price")} />
+              <span style={goldGradientText}>
+                <Editable value={d.price} onChange={set("price")} />
+              </span>
             </div>
 
-            {/* Stats 2x2 grid */}
-            <div className="grid grid-cols-2 gap-x-5 gap-y-2 mt-1">
+            {/* Stats 2x2 — fixed 2-column grid so row 1 icons align exactly
+                above row 2 icons (matches canvas gridLeftX / gridRightX).
+                Cells are auto-width and items left-justified inside them. */}
+            <div
+              className="grid gap-y-3"
+              style={{
+                marginTop: 10,
+                gridTemplateColumns: "auto auto",
+                columnGap: 24,
+                justifyContent: "center",
+              }}
+            >
               {[
                 { src: "/bed-icon.svg",      val: d.beds,     k: "beds" as const },
-                { src: "/shower-icon.svg",   val: d.baths,    k: "baths" as const },
-                { src: "/house-icon.svg",    val: d.type,     k: "type" as const },
+                { src: BATH_ICON_URL,        val: d.baths,    k: "baths" as const },
+                { src: HOUSE_ICON_URL,       val: d.type,     k: "type" as const },
                 { src: "/position-icon.svg", val: d.location, k: "location" as const },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <img
-                    src={item.src}
-                    width={22}
-                    height={22}
-                    alt=""
+                <div key={i} className="flex items-center gap-2 justify-self-start">
+                  <div
                     className="shrink-0"
                     style={{
-                      objectFit: "contain",
-                      // Gold tint via CSS filter chain
-                      filter:
-                        "brightness(0) saturate(100%) invert(76%) sepia(41%) saturate(545%) hue-rotate(2deg) brightness(92%) contrast(88%)",
+                      width: 24,
+                      height: 24,
+                      backgroundImage: `linear-gradient(180deg, ${PRICE_GOLD_TOP} 0%, ${PRICE_GOLD_MID} 45%, ${PRICE_GOLD_BOTTOM} 100%)`,
+                      WebkitMaskImage: `url(${item.src})`,
+                      maskImage: `url(${item.src})`,
+                      WebkitMaskSize: "contain",
+                      maskSize: "contain",
+                      WebkitMaskRepeat: "no-repeat",
+                      maskRepeat: "no-repeat",
+                      WebkitMaskPosition: "center",
+                      maskPosition: "center",
                     }}
                   />
                   <div
-                    className="font-semibold"
-                    style={{ fontSize: 15, color: "#ffffff" }}
+                    style={{
+                      fontFamily: "'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                      fontWeight: 400,
+                      fontSize: 12,
+                      color: "#ffffff",
+                      whiteSpace: "nowrap",
+                    }}
                   >
                     <Editable value={item.val} onChange={set(item.k)} />
                   </div>
@@ -698,27 +825,6 @@ export default function Lyxery() {
         </div>
 
       </div>
-
-      {/* TEMP PREVIEW — live canvas render */}
-      <div className="flex flex-col items-center">
-        <div className="text-yellow-400 font-bold tracking-[0.3em] text-[9px] uppercase mb-2">
-          Live canvas (exact export)
-        </div>
-        {preview ? (
-          <img
-            src={preview}
-            alt="live canvas preview"
-            className="w-[360px] h-[640px] rounded-xl shadow-2xl border-[6px] border-yellow-700 object-contain bg-black"
-          />
-        ) : (
-          <div className="w-[360px] h-[640px] rounded-xl border-[6px] border-yellow-700 bg-black/50 flex items-center justify-center text-slate-500 text-xs">
-            Genererar…
-          </div>
-        )}
-      </div>
-
-      </div>
-      {/* /TEMP PREVIEW container */}
 
       <button
         onClick={downloadStory}
