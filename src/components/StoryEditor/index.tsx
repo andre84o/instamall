@@ -559,9 +559,9 @@ export default function StoryEditor() {
             lineHeight: 1.8,
           }}
         >
-          ✏️ Klicka på text för att redigera
+          
           <br />
-          📷 Klicka på bildrutorna för att ladda upp foto
+         
         </div>
       </div>
 
@@ -935,7 +935,7 @@ export default function StoryEditor() {
           transition: "all 0.2s",
         }}
       >
-        {st === "loading" ? "Genererar…" : "⬇  Ladda ner  1080 × 1920 px"}
+        {st === "loading" ? "Generating..." : "Download (story)"}
       </button>
 
       {st === "done" && (

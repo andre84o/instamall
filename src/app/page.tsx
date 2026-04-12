@@ -4,14 +4,16 @@ import StoryEditor from '@/components/StoryEditor'
 import PropertyStoryEditor from '@/components/PropertyStoryEditor'
 import ListStoryEditor from '@/components/ListStoryEditor'
 import Lyxery from '@/components/Lyxery'
+import Architectural from '@/components/Architectural'
 
-type Tab = 'story' | 'property' | 'list' | 'lyxery'
+type Tab = 'story' | 'property' | 'list' | 'lyxery' | 'architectural'
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: 'story',    label: 'Story' },
-  { key: 'property', label: 'Property' },
-  { key: 'list',     label: 'List' },
-  { key: 'lyxery',   label: 'Lyxery' },
+  { key: 'story',          label: 'Story' },
+  { key: 'property',       label: 'Property' },
+  { key: 'list',           label: 'List' },
+  { key: 'lyxery',         label: 'Lyxery' },
+  { key: 'architectural',  label: 'Architectural' },
 ]
 
 export default function Home() {
@@ -78,8 +80,10 @@ export default function Home() {
         <PropertyStoryEditor />
       ) : active === 'list' ? (
         <ListStoryEditor />
-      ) : (
+      ) : active === 'lyxery' ? (
         <Lyxery />
+      ) : (
+        <Architectural />
       )}
     </div>
   )

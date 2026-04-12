@@ -292,7 +292,6 @@ export default function PropertyStoryEditor() {
 
       <div style={{ marginBottom: 14, textAlign: 'center' }}>
         <div style={{ color: '#C9A96E', fontSize: 12, letterSpacing: 4, textTransform: 'uppercase', marginBottom: 4 }}>Property Story Editor</div>
-        <div style={{ color: '#555', fontSize: 10, letterSpacing: 2 }}>✏️ Klicka på text · 📷 Klicka på bilder för att byta</div>
       </div>
 
       {/* PREVIEW CARD */}
@@ -371,10 +370,10 @@ export default function PropertyStoryEditor() {
             transition: 'all 0.2s',
           }}
         >
-          {downloading ? '⏳  Genererar...' : '⬇  Ladda ner  1080 × 1920 px'}
+          {downloading ? 'Generating...' : 'Download (property)'}
         </button>
       </div>
-      <div style={{ marginTop: 10, color: '#444', fontSize: 10, letterSpacing: 1 }}>PNG · Klar för Instagram Stories</div>
+      <div style={{ marginTop: 10, color: '#444', fontSize: 10, letterSpacing: 1 }}>PNG · Ready for Instagram Stories</div>
     </div>
   )
 }

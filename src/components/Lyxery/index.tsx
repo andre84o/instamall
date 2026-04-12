@@ -272,7 +272,7 @@ export default function Lyxery() {
       const ctx = canvas.getContext("2d")!;
 
       ctx.beginPath();
-      ctx.roundRect(0, 0, W, H, 0);
+      ctx.roundRect(0, 0, W, H, 30);
       ctx.clip();
 
       const loadImg = (src: string | null): Promise<HTMLImageElement | null> =>
@@ -630,20 +630,20 @@ export default function Lyxery() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b1220] flex flex-col items-center py-10 px-4 font-sans text-white">
+    <div className="flex flex-col items-center py-10 px-4 font-sans text-white w-full">
       <div className="text-center mb-8">
-        <h2 className="text-yellow-400 font-bold tracking-[0.3em] text-[10px] uppercase">
+        <h2 className="text-sky-400 font-bold tracking-[0.3em] text-[10px] uppercase">
           Lyxery
         </h2>
         <p className="text-slate-500 text-xs mt-1">
-          Klicka på text eller bildrutor för att ändra
+          Click any text or image to edit
         </p>
       </div>
 
       {/* ── Story Canvas (1080x1920 ratio → 360x640 preview) ── */}
       <div
         id="story-canvas"
-        className="relative w-[360px] h-[640px] bg-[#0b1220] shadow-2xl overflow-hidden border-[6px] border-slate-800"
+        className="relative w-[360px] h-[640px] bg-[#0b1220] rounded-xl shadow-2xl overflow-hidden border-[6px] border-slate-800"
       >
         {/* P1 — top half background */}
         <div className="absolute inset-x-0 top-0 h-1/2 z-0">
@@ -831,10 +831,8 @@ export default function Lyxery() {
         disabled={downloading}
         style={{
           marginTop: 24,
-          background: downloading
-            ? "#2a1f00"
-            : `linear-gradient(135deg, ${GOLD_LIGHT}, ${GOLD}, ${GOLD_DARK})`,
-          color: "#1a1205",
+          background: downloading ? "#1A3030" : "linear-gradient(135deg,#3D8A8F,#2C6E73)",
+          color: "#fff",
           border: "none",
           borderRadius: 8,
           padding: "15px 48px",
@@ -843,7 +841,7 @@ export default function Lyxery() {
           letterSpacing: 4,
           textTransform: "uppercase" as const,
           cursor: downloading ? "not-allowed" : "pointer",
-          boxShadow: downloading ? "none" : "0 8px 32px rgba(212,175,55,0.4)",
+          boxShadow: downloading ? "none" : "0 8px 32px rgba(61,138,143,0.42)",
           fontFamily: SS,
           transition: "all 0.2s",
           display: "flex",
@@ -851,7 +849,7 @@ export default function Lyxery() {
           gap: 10,
         }}
       >
-        <Download size={18} /> {downloading ? "Genererar..." : "Ladda ner (lyxery)"}
+        <Download size={18} /> {downloading ? "Generating..." : "Download (lyxery)"}
       </button>
     </div>
   );

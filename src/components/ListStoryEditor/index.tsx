@@ -518,13 +518,13 @@ export default function ListStoryEditor() {
   }, [renderCanvas, d.ref]);
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex flex-col items-center py-10 px-4 font-sans text-white">
+    <div className="flex flex-col items-center py-10 px-4 font-sans text-white w-full">
       <div className="text-center mb-8">
         <h2 className="text-sky-400 font-bold tracking-[0.3em] text-[10px] uppercase">
-          ListStoryEditor
+          List
         </h2>
         <p className="text-slate-500 text-xs mt-1">
-          Klicka på text eller bildrutor för att ändra
+          Click any text or image to edit
         </p>
       </div>
 
@@ -701,7 +701,7 @@ export default function ListStoryEditor() {
           gap: 10,
         }}
       >
-        <Download size={18} /> {downloading ? "Genererar..." : "Ladda ner (story)"}
+        <Download size={18} /> {downloading ? "Generating..." : "Download (list)"}
       </button>
     </div>
   );
